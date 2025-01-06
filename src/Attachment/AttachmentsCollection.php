@@ -1,14 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Soap\Psr18AttachmentMiddleware\Attachment;
 
+use Countable;
+use IteratorAggregate;
 use Soap\Psr18AttachmentMiddleware\Exception\AttachmentNotFoundException;
-use Traversable;
 
 /**
  * @template-implements \IteratorAggregate<int, Attachment>
  */
-final class AttachmentsCollection implements \Countable, \IteratorAggregate
+final class AttachmentsCollection implements Countable, IteratorAggregate
 {
     /**
      * @var list<Attachment>
@@ -23,7 +24,7 @@ final class AttachmentsCollection implements \Countable, \IteratorAggregate
         $this->attachments = $attachments;
     }
 
-    public function getIterator()
+    public function getIterator(): iterable
     {
         yield from $this->attachments;
     }

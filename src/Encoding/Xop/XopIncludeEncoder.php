@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Soap\Psr18AttachmentMiddleware\Encoding\Xop;
 
@@ -26,7 +26,6 @@ final class XopIncludeEncoder implements XmlEncoder
     }
 
     /**
-     * @param Context $context
      * @return Iso<Attachment, non-empty-string>
      */
     public function iso(Context $context): Iso
@@ -39,6 +38,7 @@ final class XopIncludeEncoder implements XmlEncoder
 
                 $this->attachmentStorage->requestAttachments()->add($raw);
 
+                /** @var non-empty-string */
                 return Writer::inMemory()
                     ->write(namespaced_element(
                         self::XMLNS_XOP,
@@ -50,7 +50,6 @@ final class XopIncludeEncoder implements XmlEncoder
             },
             /**
              * @param non-empty-string|Element $xml
-             * @return Attachment
              */
             function (Element|string $xml): Attachment {
                 $element = ($xml instanceof Element ? $xml : Element::fromString($xml))->element();

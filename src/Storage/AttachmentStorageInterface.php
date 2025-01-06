@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Soap\Psr18AttachmentMiddleware\Storage;
 
@@ -9,14 +9,12 @@ interface AttachmentStorageInterface
     /**
      * List all attachments for current request
      *
-     * @return AttachmentsCollection
      */
     public function requestAttachments(): AttachmentsCollection;
 
     /**
      * List all attachments available in current response
      *
-     * @return AttachmentsCollection
      */
     public function responseAttachments(): AttachmentsCollection;
 

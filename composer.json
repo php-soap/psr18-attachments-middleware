@@ -15,15 +15,19 @@
         }
     ],
     "require": {
+        "php": "~8.2.0 || ~8.3.0 || ~8.4.0",
         "phpro/resource-stream": "^1.0",
         "php-http/multipart-stream-builder": "^1.4",
         "riverline/multipart-parser": "^2.1",
         "php-soap/psr18-transport": "^1.7",
-        "symfony/http-client": "^7.2"
+        "symfony/http-client": "^7.2",
+        "azjezz/psl": "^3.1"
     },
     "require-dev": {
         "nyholm/psr7": "^1.8",
-        "php-soap/encoding": "^0.16.0"
+        "php-soap/encoding": "^0.16.0",
+        "vimeo/psalm": "^5.26",
+        "php-standard-library/psalm-plugin": "^2.3"
     },
     "config": {
         "allow-plugins": {

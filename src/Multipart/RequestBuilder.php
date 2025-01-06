@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Soap\Psr18AttachmentMiddleware\Multipart;
 
@@ -27,9 +27,9 @@ final class RequestBuilder
     }
 
     public function __invoke(
-        RequestInterface           $request,
+        RequestInterface $request,
         AttachmentStorageInterface $attachmentStorage,
-        AttachmentType             $transportType
+        AttachmentType $transportType
     ): RequestInterface {
         $attachments = $attachmentStorage->requestAttachments();
         if (!count($attachments)) {
@@ -48,25 +48,33 @@ final class RequestBuilder
 
         /** @var Attachment $attachment */
         foreach ($attachments as $attachment) {
-            $builder->addResource($attachment->content->unwrap(), $attachment->mimeType, [
-                'filename' => $attachment->filename,
-                'headers' => [
-                    'Content-ID' => $attachment->id,
-                    'Content-Type' => $attachment->mimeType,
-                    'Content-Transfer-Encoding' => 'binary',
+            $builder->addResource(
+                $attachment->filename,
+                $attachment->content->unwrap(),
+                [
+                    'filename' => $attachment->filename,
+                    'headers' => [
+                        'Content-ID' => $attachment->id,
+                        'Content-Type' => $attachment->mimeType,
+                        'Content-Transfer-Encoding' => 'binary',
+                    ]
                 ]
-            ]);
+            );
         }
 
         $boundary = $builder->getBoundary();
-        $multipartRequest = $this->requestFactory->createRequest(
-            $request->getMethod(),
-            $request->getUri(),
-            $builder->build()
-        )->withAddedHeader('Content-Type', match($transportType) {
-            AttachmentType::Swa => 'multipart/related; type="text/xml"; boundary="' . $boundary. '"; start="soaprequest"',
-            AttachmentType::Mtom => 'multipart/related; type="application/xop+xml"; boundary="' . $boundary . '"; start="soaprequest"; start-info="application/soap+xml"',
-        });
+        $multipartRequest = $this->requestFactory
+            ->createRequest(
+                $request->getMethod(),
+                $request->getUri(),
+            )
+            ->withAddedHeader('Content-Type', match($transportType) {
+                AttachmentType::Swa => 'multipart/related; type="text/xml"; boundary="' . $boundary. '"; start="soaprequest"',
+                AttachmentType::Mtom => 'multipart/related; type="application/xop+xml"; boundary="' . $boundary . '"; start="soaprequest"; start-info="application/soap+xml"',
+            })
+            ->withBody(
+                $builder->build()
+            );
 
         if ($transportType === AttachmentType::Swa) {
             $multipartRequest = $multipartRequest->withAddedHeader('SoapAction', $request->getHeaderLine('SoapAction'));

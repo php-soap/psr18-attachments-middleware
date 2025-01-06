@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Soap\Psr18AttachmentMiddleware\Middleware;
 
@@ -6,9 +6,9 @@ use Http\Client\Common\Plugin;
 use Http\Promise\Promise;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Soap\Psr18AttachmentMiddleware\Multipart\AttachmentType;
 use Soap\Psr18AttachmentMiddleware\Multipart\RequestBuilder;
 use Soap\Psr18AttachmentMiddleware\Multipart\ResponseBuilder;
-use Soap\Psr18AttachmentMiddleware\Multipart\AttachmentType;
 use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorageInterface;
 
 final class AttachmentsMiddleware implements Plugin
@@ -18,9 +18,9 @@ final class AttachmentsMiddleware implements Plugin
 
     public function __construct(
         private readonly AttachmentStorageInterface $storage,
-        private readonly AttachmentType             $transportType,
-        ?RequestBuilder                             $requestBuilder = null,
-        ?ResponseBuilder                            $responseBuilder = null,
+        private readonly AttachmentType $transportType,
+        ?RequestBuilder $requestBuilder = null,
+        ?ResponseBuilder $responseBuilder = null,
     ) {
         $this->requestBuilder = $requestBuilder ?? RequestBuilder::default();
         $this->responseBuilder = $responseBuilder ?? ResponseBuilder::default();

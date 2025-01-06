@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Soap\Psr18AttachmentMiddleware\Multipart;
 
@@ -10,8 +10,10 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Riverline\MultiPartParser\Converters\PSR7;
 use Riverline\MultiPartParser\StreamedPart;
 use Soap\Psr18AttachmentMiddleware\Attachment\Attachment;
+use Soap\Psr18AttachmentMiddleware\Attachment\IdGenerator;
 use Soap\Psr18AttachmentMiddleware\Exception\SoapMessageNotFoundException;
 use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorageInterface;
+use function Psl\Type\string;
 
 final class ResponseBuilder
 {
@@ -37,18 +39,17 @@ final class ResponseBuilder
         }
 
         $contentType = $response->getHeaderLine('Content-Type');
-        $start = StreamedPart::getHeaderOption($contentType, 'start');
-        $soapType = StreamedPart::getHeaderOption($contentType, 'type', 'text/xml');
+        $start = string()->coerce(StreamedPart::getHeaderOption($contentType, 'start'));
+        $soapType = string()->coerce(StreamedPart::getHeaderOption($contentType, 'type', 'text/xml'));
         if ($soapType === 'application/xop+xml') {
-            $soapType = StreamedPart::getHeaderOption($contentType, 'start-info', 'application/soap+xml');
+            $soapType = string()->coerce(StreamedPart::getHeaderOption($contentType, 'start-info', 'application/soap+xml'));
         }
-
 
         $mainPart = null;
         $attachments = $attachmentStorage->responseAttachments();
         foreach ($document->getParts() as $part) {
             $mimeType = $part->getMimeType();
-            $id = $part->getHeader('Content-ID');
+            $id = string()->coerce($part->getHeader('Content-ID'));
 
             if (($start && $id === $start) || $mimeType === $soapType) {
                 $mainPart = $part;
@@ -56,8 +57,8 @@ final class ResponseBuilder
             }
 
             $attachments->add(new Attachment(
-                $id,
-                $part->getFileName(),
+                $id ?: IdGenerator::generate(),
+                $part->getFileName() ?? 'unknown',
                 $mimeType,
                 TmpStream::create()->write($part->getBody())->rewind(),
             ));
@@ -67,9 +68,11 @@ final class ResponseBuilder
             throw SoapMessageNotFoundException::insideMultipart($start, $soapType);
         }
 
-        return $this->responseFactory->createResponse(
-            $response->getStatusCode(),
-            $this->streamFactory->createStream($mainPart->getBody())
-        );
+        return $this->responseFactory
+            ->createResponse(
+                $response->getStatusCode()
+            )->withBody(
+                $this->streamFactory->createStream($mainPart->getBody())
+            );
     }
 }
