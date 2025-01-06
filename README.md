@@ -98,7 +98,7 @@ foreach ($attachments as $attachment) {
 ### XOP Includes
 
 If you are using MTOM attachments in combination with XOP you can use the `XopIncludeEncoder` to work directly with attachments from within your SOAP objects.
-This requires you to use the `php-soap/encoder` pacakge:
+This requires you to use the [php-soap/encoder](https://github.com/php-soap/encoder) pacakge:
 
 ```sh
 composer require php-soap/encoder
