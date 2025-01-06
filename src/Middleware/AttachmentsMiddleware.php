@@ -1,17 +1,17 @@
 <?php declare(strict_types=1);
 
-namespace Soap\Psr18AttachmentMiddleware\Middleware;
+namespace Soap\Psr18AttachmentsMiddleware\Middleware;
 
 use Http\Client\Common\Plugin;
 use Http\Promise\Promise;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Soap\Psr18AttachmentMiddleware\Multipart\AttachmentType;
-use Soap\Psr18AttachmentMiddleware\Multipart\RequestBuilder;
-use Soap\Psr18AttachmentMiddleware\Multipart\RequestBuilderInterface;
-use Soap\Psr18AttachmentMiddleware\Multipart\ResponseBuilder;
-use Soap\Psr18AttachmentMiddleware\Multipart\ResponseBuilderInterface;
-use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorageInterface;
+use Soap\Psr18AttachmentsMiddleware\Multipart\AttachmentType;
+use Soap\Psr18AttachmentsMiddleware\Multipart\RequestBuilder;
+use Soap\Psr18AttachmentsMiddleware\Multipart\RequestBuilderInterface;
+use Soap\Psr18AttachmentsMiddleware\Multipart\ResponseBuilder;
+use Soap\Psr18AttachmentsMiddleware\Multipart\ResponseBuilderInterface;
+use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
 
 final readonly class AttachmentsMiddleware implements Plugin
 {

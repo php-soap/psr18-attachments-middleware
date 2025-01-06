@@ -8,6 +8,11 @@
             "Soap\\Psr18AttachmentsMiddleware\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "SoapTest\\Psr18AttachmentsMiddleware\\": "tests/"
+        }
+    },
     "authors": [
         {
             "name": "Toon Verwerft",
@@ -27,7 +32,8 @@
         "nyholm/psr7": "^1.8",
         "php-soap/encoding": "^0.16.0",
         "vimeo/psalm": "^5.26",
-        "php-standard-library/psalm-plugin": "^2.3"
+        "php-standard-library/psalm-plugin": "^2.3",
+        "phpunit/phpunit": "^10.5.40"
     },
     "config": {
         "allow-plugins": {

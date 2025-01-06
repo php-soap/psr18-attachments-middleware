@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace Soap\Psr18AttachmentMiddleware\Multipart;
+namespace Soap\Psr18AttachmentsMiddleware\Multipart;
 
 use Psr\Http\Message\RequestInterface;
-use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorageInterface;
+use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
 
 interface RequestBuilderInterface
 {

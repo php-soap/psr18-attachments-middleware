@@ -28,9 +28,9 @@ This middleware is used to add attachments to your SOAP request:
 ```php
 use Http\Client\Common\PluginClient;
 use Soap\Psr18Transport\Psr18Transport;
-use Soap\Psr18AttachmentMiddleware\Middleware\AttachmentsMiddleware;
-use Soap\Psr18AttachmentMiddleware\Multipart\AttachmentType;
-use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorage;
+use Soap\Psr18AttachmentsMiddleware\Middleware\AttachmentsMiddleware;
+use Soap\Psr18AttachmentsMiddleware\Multipart\AttachmentType;
+use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorage;
 
 // You should store this attachment storage in a central place in your application e.g. inside a service container.
 // It is used to store the attachments that are being sent and received.
@@ -54,8 +54,8 @@ Adding attachments to your request is done by using the `AttachmentsStorage` bef
 use Http\Client\Common\PluginClient;
 use Phpro\ResourceStream\Factory\FileStream;
 use Soap\Psr18Transport\Psr18Transport;
-use Soap\Psr18AttachmentMiddleware\Attachment\Attachment;
-use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorage;
+use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
+use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorage;
 
 // You should store this attachment storage in a central place in your application.
 // It is used to store the attachments that are being sent and received.
@@ -78,8 +78,8 @@ Receiving attachments is done by using the `AttachmentsStorage` after receiving 
 use Http\Client\Common\PluginClient;
 use Phpro\ResourceStream\Factory\FileStream;
 use Soap\Psr18Transport\Psr18Transport;
-use Soap\Psr18AttachmentMiddleware\Attachment\Attachment;
-use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorage;
+use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
+use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorage;
 
 // You should store this attachment storage in a central place in your application.
 // It is used to store the attachments that are being sent and received.
@@ -106,7 +106,7 @@ composer require php-soap/encoder
 
 ```php
 use Soap\Encoding\EncoderRegistry;
-use Soap\Psr18AttachmentMiddleware\Encoding\Xop\XopIncludeEncoder
+use Soap\Psr18AttachmentsMiddleware\Encoding\Xop\XopIncludeEncoder
 
 // You should store this attachment storage in a central place in your application.
 // It is used to store the attachments that are being sent and received.
@@ -120,7 +120,7 @@ This will allow you to use attachments directly from within your SOAP request an
 
 ```php
 use Phpro\ResourceStream\Factory\FileStream;
-use Soap\Psr18AttachmentMiddleware\Attachment\Attachment;
+use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
 
 // Your request can now contain Attachments directly:
 // These attachments will be automatically added to the AttachmentStorageInterface and a <xop:Include> element will be added to your request instead.

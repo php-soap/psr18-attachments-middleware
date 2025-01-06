@@ -1,12 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace Soap\Psr18AttachmentMiddleware\Encoding\Xop;
+namespace Soap\Psr18AttachmentsMiddleware\Encoding\Xop;
 
 use Soap\Encoding\Encoder\Context;
 use Soap\Encoding\Encoder\XmlEncoder;
 use Soap\Encoding\Xml\Node\Element;
-use Soap\Psr18AttachmentMiddleware\Attachment\Attachment;
-use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorageInterface;
+use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
+use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
 use VeeWee\Reflecta\Iso\Iso;
 use VeeWee\Xml\Writer\Writer;
 use function VeeWee\Xml\Writer\Builder\attribute;

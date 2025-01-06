@@ -1,10 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace Soap\Psr18AttachmentMiddleware\Attachment;
+namespace Soap\Psr18AttachmentsMiddleware\Attachment;
 
 use Countable;
 use IteratorAggregate;
-use Soap\Psr18AttachmentMiddleware\Exception\AttachmentNotFoundException;
+use Soap\Psr18AttachmentsMiddleware\Exception\AttachmentNotFoundException;
 
 /**
  * @template-implements \IteratorAggregate<int, Attachment>

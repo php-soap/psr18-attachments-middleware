@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Soap\Psr18AttachmentMiddleware\Exception;
+namespace Soap\Psr18AttachmentsMiddleware\Exception;
 
 use Soap\Engine\Exception\RuntimeException;
 

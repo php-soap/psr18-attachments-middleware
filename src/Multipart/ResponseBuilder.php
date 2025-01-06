@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Soap\Psr18AttachmentMiddleware\Multipart;
+namespace Soap\Psr18AttachmentsMiddleware\Multipart;
 
 use Http\Discovery\Psr17FactoryDiscovery;
 use Phpro\ResourceStream\Factory\TmpStream;
@@ -9,10 +9,10 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Riverline\MultiPartParser\Converters\PSR7;
 use Riverline\MultiPartParser\StreamedPart;
-use Soap\Psr18AttachmentMiddleware\Attachment\Attachment;
-use Soap\Psr18AttachmentMiddleware\Attachment\IdGenerator;
-use Soap\Psr18AttachmentMiddleware\Exception\SoapMessageNotFoundException;
-use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorageInterface;
+use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
+use Soap\Psr18AttachmentsMiddleware\Attachment\IdGenerator;
+use Soap\Psr18AttachmentsMiddleware\Exception\SoapMessageNotFoundException;
+use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
 use function Psl\Type\string;
 
 final readonly class ResponseBuilder implements ResponseBuilderInterface

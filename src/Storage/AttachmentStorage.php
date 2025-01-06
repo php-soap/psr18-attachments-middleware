@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Soap\Psr18AttachmentMiddleware\Storage;
+namespace Soap\Psr18AttachmentsMiddleware\Storage;
 
-use Soap\Psr18AttachmentMiddleware\Attachment\AttachmentsCollection;
+use Soap\Psr18AttachmentsMiddleware\Attachment\AttachmentsCollection;
 
 final class AttachmentStorage implements AttachmentStorageInterface
 {

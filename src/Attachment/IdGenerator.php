@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Soap\Psr18AttachmentMiddleware\Attachment;
+namespace Soap\Psr18AttachmentsMiddleware\Attachment;
 
 use function Psl\SecureRandom\string;
 

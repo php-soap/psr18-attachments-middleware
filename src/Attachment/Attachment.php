@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Soap\Psr18AttachmentMiddleware\Attachment;
+namespace Soap\Psr18AttachmentsMiddleware\Attachment;
 
 use Http\Message\MultipartStream\ApacheMimetypeHelper;
 use Phpro\ResourceStream\ResourceStream;

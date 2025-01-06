@@ -1,14 +1,14 @@
 <?php declare(strict_types=1);
 
-namespace Soap\Psr18AttachmentMiddleware\Multipart;
+namespace Soap\Psr18AttachmentsMiddleware\Multipart;
 
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Message\MultipartStream\MultipartStreamBuilder;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
-use Soap\Psr18AttachmentMiddleware\Attachment\Attachment;
-use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorageInterface;
+use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
+use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
 
 final readonly class RequestBuilder implements RequestBuilderInterface
 {
@@ -39,7 +39,7 @@ final readonly class RequestBuilder implements RequestBuilderInterface
         $builder = new MultipartStreamBuilder($this->streamFactory);
 
         $builder->addData($request->getBody(), [
-            'Content-Type' => match ($transportType) {
+            'Content-Type' => match ($attachmentType) {
                 AttachmentType::Swa => 'text/xml; charset=UTF-8',
                 AttachmentType::Mtom => 'application/xop+xml; charset=UTF-8; type=application/soap+xml',
             },
@@ -68,7 +68,7 @@ final readonly class RequestBuilder implements RequestBuilderInterface
                 $request->getMethod(),
                 $request->getUri(),
             )
-            ->withAddedHeader('Content-Type', match($transportType) {
+            ->withAddedHeader('Content-Type', match($attachmentType) {
                 AttachmentType::Swa => 'multipart/related; type="text/xml"; boundary="' . $boundary. '"; start="soaprequest"',
                 AttachmentType::Mtom => 'multipart/related; type="application/xop+xml"; boundary="' . $boundary . '"; start="soaprequest"; start-info="application/soap+xml"',
             })
@@ -76,7 +76,7 @@ final readonly class RequestBuilder implements RequestBuilderInterface
                 $builder->build()
             );
 
-        if ($transportType === AttachmentType::Swa) {
+        if ($attachmentType === AttachmentType::Swa) {
             $multipartRequest = $multipartRequest->withAddedHeader('SoapAction', $request->getHeaderLine('SoapAction'));
         }
 
