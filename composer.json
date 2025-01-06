@@ -1,0 +1,33 @@
+{
+    "name": "php-soap/psr18-attachments-middleware",
+    "description": "Add SWA / MTOM attachments to your SOAP client",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Soap\\Psr18AttachmentsMiddleware\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Toon Verwerft",
+            "email": "toonverwerft@gmail.com"
+        }
+    ],
+    "require": {
+        "phpro/resource-stream": "^1.0",
+        "php-http/multipart-stream-builder": "^1.4",
+        "riverline/multipart-parser": "^2.1",
+        "php-soap/psr18-transport": "^1.7",
+        "symfony/http-client": "^7.2"
+    },
+    "require-dev": {
+        "nyholm/psr7": "^1.8",
+        "php-soap/encoding": "^0.16.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}
