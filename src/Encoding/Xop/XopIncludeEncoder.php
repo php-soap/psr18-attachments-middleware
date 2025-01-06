@@ -6,7 +6,7 @@ use Soap\Encoding\Encoder\Context;
 use Soap\Encoding\Encoder\XmlEncoder;
 use Soap\Encoding\Xml\Node\Element;
 use Soap\Psr18AttachmentMiddleware\Attachment\Attachment;
-use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorage;
+use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorageInterface;
 use VeeWee\Reflecta\Iso\Iso;
 use VeeWee\Xml\Writer\Writer;
 use function VeeWee\Xml\Writer\Builder\attribute;
@@ -21,7 +21,7 @@ final class XopIncludeEncoder implements XmlEncoder
     public const XMLNS_XOP = 'http://www.w3.org/2004/08/xop/include';
 
     public function __construct(
-        private readonly AttachmentStorage $attachmentStorage
+        private readonly AttachmentStorageInterface $attachmentStorage
     ) {
     }
 

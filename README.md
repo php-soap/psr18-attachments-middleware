@@ -1,6 +1,6 @@
 # SOAP SWA / MTOM Middleware
 
-This package provides the tools you need in order to add SWA or MTOM Attachments to your PSR-18 based SOAP Transport.
+This package provides the tools you need in order to add [SWA](https://www.w3.org/TR/SOAP-attachments/) or [MTOM](https://www.w3.org/TR/soap12-mtom/) Attachments to your PSR-18 based SOAP Transport.
 
 # Want to help out? 💚
 
@@ -29,6 +29,7 @@ This middleware is used to add attachments to your SOAP request:
 use Http\Client\Common\PluginClient;
 use Soap\Psr18Transport\Psr18Transport;
 use Soap\Psr18AttachmentMiddleware\Middleware\AttachmentsMiddleware;
+use Soap\Psr18AttachmentMiddleware\Multipart\AttachmentType;
 use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorage;
 
 // You should store this attachment storage in a central place in your application e.g. inside a service container.
@@ -122,7 +123,7 @@ use Phpro\ResourceStream\Factory\FileStream;
 use Soap\Psr18AttachmentMiddleware\Attachment\Attachment;
 
 // Your request can now contain Attachments directly:
-// These attachments will be automatically added to the AttachmentStorage and a <xop:Include> element will be added to your request instead.
+// These attachments will be automatically added to the AttachmentStorageInterface and a <xop:Include> element will be added to your request instead.
 $yourSoapPayload = (object) [
     'file' => Attachment::create(
         'your.pdf',
@@ -130,7 +131,7 @@ $yourSoapPayload = (object) [
     )
 ];
 
-// If your resonse contains an <xop:Include> element, the AttachmentStorage will automatically fetch the attachment and replace the <xop:Include> element with the actual attachment content:
+// If your resonse contains an <xop:Include> element, the AttachmentStorageInterface will automatically fetch the attachment and replace the <xop:Include> element with the actual attachment content:
 $response = $yourSoapClient->request('Foo', $yourSoapPayload);
 $response->foo->file->copyTo(FileStream::create('path/to/your.pdf', FileStream::WRITE_MODE));
 

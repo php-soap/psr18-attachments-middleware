@@ -4,30 +4,34 @@ namespace Soap\Psr18AttachmentMiddleware\Storage;
 
 use Soap\Psr18AttachmentMiddleware\Attachment\AttachmentsCollection;
 
-interface AttachmentStorage
+final class AttachmentStorage implements AttachmentStorageInterface
 {
-    /**
-     * List all attachments for current request
-     *
-     * @return AttachmentsCollection
-     */
-    public function requestAttachments(): AttachmentsCollection;
+    private AttachmentsCollection $requestAttachments;
+    private AttachmentsCollection $responseAttachments;
 
-    /**
-     * List all attachments available in current response
-     *
-     * @return AttachmentsCollection
-     */
-    public function responseAttachments(): AttachmentsCollection;
+    public function __construct()
+    {
+        $this->requestAttachments = new AttachmentsCollection();
+        $this->responseAttachments = new AttachmentsCollection();
+    }
 
+    public function requestAttachments(): AttachmentsCollection
+    {
+        return $this->requestAttachments;
+    }
 
-    /**
-     * Will be used by the middleware the reset the request attachments in between requests so that the same storage instance can be used.
-     */
-    public function resetRequestAttachments(): void;
+    public function responseAttachments(): AttachmentsCollection
+    {
+        return $this->responseAttachments;
+    }
 
-    /**
-     * Will be used by the middleware the reset the request attachments in between requests so that the same storage instance can be used.
-     */
-    public function resetResponseAttachments(): void;
+    public function resetRequestAttachments(): void
+    {
+        $this->requestAttachments = new AttachmentsCollection();
+    }
+
+    public function resetResponseAttachments(): void
+    {
+        $this->responseAttachments = new AttachmentsCollection();
+    }
 }

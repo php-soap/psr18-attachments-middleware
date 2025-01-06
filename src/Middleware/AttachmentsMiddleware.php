@@ -8,8 +8,8 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Soap\Psr18AttachmentMiddleware\Multipart\RequestBuilder;
 use Soap\Psr18AttachmentMiddleware\Multipart\ResponseBuilder;
-use Soap\Psr18AttachmentMiddleware\Multipart\TransportType;
-use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorage;
+use Soap\Psr18AttachmentMiddleware\Multipart\AttachmentType;
+use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorageInterface;
 
 final class AttachmentsMiddleware implements Plugin
 {
@@ -17,10 +17,10 @@ final class AttachmentsMiddleware implements Plugin
     private readonly ResponseBuilder $responseBuilder;
 
     public function __construct(
-        private readonly AttachmentStorage $storage,
-        private readonly TransportType $transportType,
-        ?RequestBuilder $requestBuilder = null,
-        ?ResponseBuilder $responseBuilder = null,
+        private readonly AttachmentStorageInterface $storage,
+        private readonly AttachmentType             $transportType,
+        ?RequestBuilder                             $requestBuilder = null,
+        ?ResponseBuilder                            $responseBuilder = null,
     ) {
         $this->requestBuilder = $requestBuilder ?? RequestBuilder::default();
         $this->responseBuilder = $responseBuilder ?? ResponseBuilder::default();

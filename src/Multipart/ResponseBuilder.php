@@ -11,7 +11,7 @@ use Riverline\MultiPartParser\Converters\PSR7;
 use Riverline\MultiPartParser\StreamedPart;
 use Soap\Psr18AttachmentMiddleware\Attachment\Attachment;
 use Soap\Psr18AttachmentMiddleware\Exception\SoapMessageNotFoundException;
-use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorage;
+use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorageInterface;
 
 final class ResponseBuilder
 {
@@ -29,7 +29,7 @@ final class ResponseBuilder
         );
     }
 
-    public function __invoke(ResponseInterface $response, AttachmentStorage $attachmentStorage): ResponseInterface
+    public function __invoke(ResponseInterface $response, AttachmentStorageInterface $attachmentStorage): ResponseInterface
     {
         $document = PSR7::convert($response);
         if (!$document->isMultiPart()) {
