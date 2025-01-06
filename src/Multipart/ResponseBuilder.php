@@ -15,11 +15,11 @@ use Soap\Psr18AttachmentMiddleware\Exception\SoapMessageNotFoundException;
 use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorageInterface;
 use function Psl\Type\string;
 
-final class ResponseBuilder
+final readonly class ResponseBuilder implements ResponseBuilderInterface
 {
     public function __construct(
-        private readonly ResponseFactoryInterface $responseFactory,
-        private readonly StreamFactoryInterface $streamFactory,
+        private ResponseFactoryInterface $responseFactory,
+        private StreamFactoryInterface $streamFactory,
     ) {
     }
 
@@ -31,8 +31,11 @@ final class ResponseBuilder
         );
     }
 
-    public function __invoke(ResponseInterface $response, AttachmentStorageInterface $attachmentStorage): ResponseInterface
-    {
+    public function __invoke(
+        ResponseInterface $response,
+        AttachmentStorageInterface $attachmentStorage,
+        AttachmentType $attachmentType
+    ): ResponseInterface {
         $document = PSR7::convert($response);
         if (!$document->isMultiPart()) {
             return $response;

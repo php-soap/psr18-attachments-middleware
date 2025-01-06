@@ -10,11 +10,11 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Soap\Psr18AttachmentMiddleware\Attachment\Attachment;
 use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorageInterface;
 
-final class RequestBuilder
+final readonly class RequestBuilder implements RequestBuilderInterface
 {
     public function __construct(
-        private readonly RequestFactoryInterface $requestFactory,
-        private readonly StreamFactoryInterface $streamFactory,
+        private RequestFactoryInterface $requestFactory,
+        private StreamFactoryInterface  $streamFactory,
     ) {
     }
 
@@ -29,7 +29,7 @@ final class RequestBuilder
     public function __invoke(
         RequestInterface $request,
         AttachmentStorageInterface $attachmentStorage,
-        AttachmentType $transportType
+        AttachmentType $attachmentType,
     ): RequestInterface {
         $attachments = $attachmentStorage->requestAttachments();
         if (!count($attachments)) {

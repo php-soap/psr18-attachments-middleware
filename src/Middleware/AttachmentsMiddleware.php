@@ -8,19 +8,21 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Soap\Psr18AttachmentMiddleware\Multipart\AttachmentType;
 use Soap\Psr18AttachmentMiddleware\Multipart\RequestBuilder;
+use Soap\Psr18AttachmentMiddleware\Multipart\RequestBuilderInterface;
 use Soap\Psr18AttachmentMiddleware\Multipart\ResponseBuilder;
+use Soap\Psr18AttachmentMiddleware\Multipart\ResponseBuilderInterface;
 use Soap\Psr18AttachmentMiddleware\Storage\AttachmentStorageInterface;
 
-final class AttachmentsMiddleware implements Plugin
+final readonly class AttachmentsMiddleware implements Plugin
 {
-    private readonly RequestBuilder $requestBuilder;
-    private readonly ResponseBuilder $responseBuilder;
+    private RequestBuilderInterface $requestBuilder;
+    private ResponseBuilderInterface $responseBuilder;
 
     public function __construct(
-        private readonly AttachmentStorageInterface $storage,
-        private readonly AttachmentType $transportType,
-        ?RequestBuilder $requestBuilder = null,
-        ?ResponseBuilder $responseBuilder = null,
+        private AttachmentStorageInterface $storage,
+        private AttachmentType $transportType,
+        ?RequestBuilderInterface $requestBuilder = null,
+        ?ResponseBuilderInterface $responseBuilder = null,
     ) {
         $this->requestBuilder = $requestBuilder ?? RequestBuilder::default();
         $this->responseBuilder = $responseBuilder ?? ResponseBuilder::default();
@@ -35,7 +37,7 @@ final class AttachmentsMiddleware implements Plugin
             function (ResponseInterface $response): ResponseInterface {
                 $this->storage->resetResponseAttachments();
 
-                return ($this->responseBuilder)($response, $this->storage);
+                return ($this->responseBuilder)($response, $this->storage, $this->transportType);
             }
         );
     }

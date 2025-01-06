@@ -16,12 +16,12 @@ use function VeeWee\Xml\Writer\Mapper\memory_output;
 /**
  * @template-implements XmlEncoder<Attachment, non-empty-string>
  */
-final class XopIncludeEncoder implements XmlEncoder
+final readonly class XopIncludeEncoder implements XmlEncoder
 {
     public const XMLNS_XOP = 'http://www.w3.org/2004/08/xop/include';
 
     public function __construct(
-        private readonly AttachmentStorageInterface $attachmentStorage
+        private AttachmentStorageInterface $attachmentStorage
     ) {
     }
 

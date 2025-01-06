@@ -5,7 +5,7 @@ namespace Soap\Psr18AttachmentMiddleware\Attachment;
 use Http\Message\MultipartStream\ApacheMimetypeHelper;
 use Phpro\ResourceStream\ResourceStream;
 
-final class Attachment
+final readonly class Attachment
 {
     /**
      * @param ResourceStream<resource> $content
