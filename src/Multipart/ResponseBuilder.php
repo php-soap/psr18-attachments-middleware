@@ -56,11 +56,12 @@ final readonly class ResponseBuilder implements ResponseBuilderInterface
 
             if (($start && $id === $start) || $mimeType === $soapType) {
                 $mainPart = $part;
-                break;
+                continue;
             }
 
             $attachments->add(new Attachment(
                 $id ?: IdGenerator::generate(),
+                $name = $part->getName() ?? 'unknown',
                 $part->getFileName() ?? 'unknown',
                 $mimeType,
                 TmpStream::create()->write($part->getBody())->rewind(),

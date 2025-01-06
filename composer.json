@@ -33,7 +33,8 @@
         "php-soap/encoding": "^0.16.0",
         "vimeo/psalm": "^5.26",
         "php-standard-library/psalm-plugin": "^2.3",
-        "phpunit/phpunit": "^10.5.40"
+        "phpunit/phpunit": "^10.5.40",
+        "php-http/mock-client": "^1.6"
     },
     "config": {
         "allow-plugins": {

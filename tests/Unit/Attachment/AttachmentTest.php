@@ -14,12 +14,14 @@ final class AttachmentTest extends TestCase
     {
         $attachment = new Attachment(
             'id',
+            'name',
             'filename',
             'mimeType',
             $stream = MemoryStream::create()
         );
 
         static::assertSame('id', $attachment->id);
+        static::assertSame('name', $attachment->name);
         static::assertSame('filename', $attachment->filename);
         static::assertSame('mimeType', $attachment->mimeType);
         static::assertSame($stream, $attachment->content);
@@ -29,11 +31,13 @@ final class AttachmentTest extends TestCase
     public function it_can_create_an_attachment(): void
     {
         $attachment = Attachment::create(
+            'name',
             'filename.pdf',
             $stream = MemoryStream::create(),
         );
 
         static::assertNotEmpty($attachment->id);
+        static::assertNotEmpty($attachment->name);
         static::assertSame('filename.pdf', $attachment->filename);
         static::assertSame('application/pdf', $attachment->mimeType);
         static::assertSame($stream, $attachment->content);

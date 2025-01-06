@@ -8,10 +8,13 @@ use Phpro\ResourceStream\ResourceStream;
 final readonly class Attachment
 {
     /**
+     * @param string $filename - The name of the file inside the Content-Disposition header.
+     * @param string $name - The name of the attachment inside the Content-Disposition header.
      * @param ResourceStream<resource> $content
      */
     public function __construct(
         public string $id,
+        public string $name,
         public string $filename,
         public string $mimeType,
         public ResourceStream $content,
@@ -22,6 +25,7 @@ final readonly class Attachment
      * @param ResourceStream<resource> $content
      */
     public static function create(
+        string $name,
         string $filename,
         ResourceStream $content,
         ?string $mimeType = null,
@@ -30,6 +34,7 @@ final readonly class Attachment
 
         return new self(
             IdGenerator::generate(),
+            $name,
             $filename,
             $mimeType,
             $content

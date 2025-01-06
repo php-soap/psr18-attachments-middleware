@@ -63,8 +63,9 @@ $attachmentsStorage = new AttachmentStorage();
 
 $attachmentsStorage->requestAttachments()->add(
     Attachment::create(
-        'your.pdf',
-        FileStream::create('path/to/your.pdf', FileStream::READ_MODE),
+        name: 'file',
+        filename: 'your.pdf',
+        content: FileStream::create('path/to/your.pdf', FileStream::READ_MODE),
     )
 );
 $yourSoapClient->request('Foo', $soapPayload);
@@ -126,8 +127,9 @@ use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
 // These attachments will be automatically added to the AttachmentStorageInterface and a <xop:Include> element will be added to your request instead.
 $yourSoapPayload = (object) [
     'file' => Attachment::create(
-        'your.pdf',
-        FileStream::create('path/to/your.pdf', FileStream::READ_MODE)
+        name: 'file',
+        filename: 'your.pdf',
+        content: FileStream::create('path/to/your.pdf', FileStream::READ_MODE)
     )
 ];
 

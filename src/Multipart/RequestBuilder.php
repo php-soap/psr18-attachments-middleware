@@ -38,26 +38,30 @@ final readonly class RequestBuilder implements RequestBuilderInterface
 
         $builder = new MultipartStreamBuilder($this->streamFactory);
 
-        $builder->addData($request->getBody(), [
-            'Content-Type' => match ($attachmentType) {
-                AttachmentType::Swa => 'text/xml; charset=UTF-8',
-                AttachmentType::Mtom => 'application/xop+xml; charset=UTF-8; type=application/soap+xml',
-            },
-            'Content-ID' => 'soaprequest'
-        ]);
+        $builder->addData(
+            (string) $request->getBody(),
+            [
+                'Content-Type' => match ($attachmentType) {
+                    AttachmentType::Swa => 'text/xml; charset=UTF-8',
+                    AttachmentType::Mtom => 'application/xop+xml; charset=UTF-8; type=application/soap+xml',
+                },
+                'Content-ID' => 'soaprequest'
+            ]
+        );
 
         /** @var Attachment $attachment */
         foreach ($attachments as $attachment) {
-            $builder->addResource(
-                $attachment->filename,
-                $attachment->content->unwrap(),
+            $builder->addData(
+                $attachment->content->rewind()->unwrap(),
                 [
-                    'filename' => $attachment->filename,
-                    'headers' => [
-                        'Content-ID' => $attachment->id,
-                        'Content-Type' => $attachment->mimeType,
-                        'Content-Transfer-Encoding' => 'binary',
-                    ]
+                    'Content-ID' => $attachment->id,
+                    'Content-Type' => $attachment->mimeType,
+                    'Content-Disposition' => sprintf(
+                        'attachment; name="%s"; filename="%s"',
+                        $attachment->name,
+                        $attachment->filename
+                    ),
+                    'Content-Transfer-Encoding' => 'binary',
                 ]
             );
         }
