@@ -16,6 +16,18 @@ use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorage;
 final class RequestBuilderTest extends TestCase
 {
     #[Test]
+    public function it_returns_regular_request_on_no_attachments(): void
+    {
+        $storage = new AttachmentStorage();
+        $request = self::createSoapRequest();
+        $builder = RequestBuilder::default();
+
+        $multipartRequest = $builder($request, $storage, AttachmentType::Swa);
+
+        static::assertSame($request, $multipartRequest);
+    }
+
+    #[Test]
     public function it_can_build_swa_related_multipart(): void
     {
         $storage = $this->createAttachmentsStore();
