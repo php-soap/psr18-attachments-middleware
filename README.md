@@ -131,8 +131,9 @@ use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
 // Your request can now contain Attachments directly:
 // These attachments will be automatically added to the AttachmentStorageInterface and a <xop:Include> element will be added to your request instead.
 $yourSoapPayload = (object) [
-    'file' => Attachment::create(
-        name: 'file',
+    // A special cid named constructor is added to make sure your attachment Content-Id is cid spec-compliant and therefore can be used with XOP.
+    'file' => Attachment::cid(
+        uri: 'foo@domain.com',
         filename: 'your.pdf',
         content: FileStream::create('path/to/your.pdf', FileStream::READ_MODE)
     )

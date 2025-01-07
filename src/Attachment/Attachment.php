@@ -40,4 +40,30 @@ final readonly class Attachment
             $content
         );
     }
+
+    /**
+     * A named constructor for creating attachments for XOP.
+     * This makes the ID "cid"-spec compliant.
+     *
+     * @see https://www.ietf.org/rfc/rfc2392.txt
+     *
+     * @param ResourceStream<resource> $content
+     */
+    public static function cid(
+        string $uri,
+        string $name,
+        string $filename,
+        ResourceStream $content,
+        ?string $mimeType = null,
+    ): self {
+        $mimeType ??= (new ApacheMimetypeHelper)->getMimetypeFromFilename($filename) ?? 'application/octet-stream';
+
+        return new self(
+            '<'.$uri.'>',
+            $name,
+            $filename,
+            $mimeType,
+            $content
+        );
+    }
 }

@@ -28,11 +28,11 @@ final class XopIncludeEncoderTest extends TestCase
         $iso = $encoder->iso($this->createContext());
 
         $result = $iso->to(
-            $attachment = new Attachment('foo', 'file', 'file.pdf', 'application/pdf', MemoryStream::create())
+            $attachment = new Attachment('<foo@x.com>', 'file', 'file.pdf', 'application/pdf', MemoryStream::create())
         );
 
-        static::assertSame('<xop:Include href="cid:foo" xmlns:xop="http://www.w3.org/2004/08/xop/include"/>', $result);
-        static::assertSame($attachment, $storage->requestAttachments()->findById('foo'));
+        static::assertSame('<xop:Include href="cid:foo@x.com" xmlns:xop="http://www.w3.org/2004/08/xop/include"/>', $result);
+        static::assertSame($attachment, $storage->requestAttachments()->findById('<foo@x.com>'));
     }
 
     #[Test]
@@ -44,9 +44,9 @@ final class XopIncludeEncoderTest extends TestCase
         $iso = $encoder->iso($this->createContext());
 
         $storage->responseAttachments()->add(
-            $attachment = new Attachment('foo', 'file', 'file.pdf', 'application/pdf', MemoryStream::create())
+            $attachment = Attachment::cid('foo@x.com', 'file', 'file.pdf', MemoryStream::create())
         );
-        $result = $iso->from('<xop:Include href="cid:foo" xmlns:xop="http://www.w3.org/2004/08/xop/include"/>');
+        $result = $iso->from('<xop:Include href="cid:foo@x.com" xmlns:xop="http://www.w3.org/2004/08/xop/include"/>');
 
         static::assertSame($attachment, $result);
     }

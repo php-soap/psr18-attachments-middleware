@@ -42,4 +42,21 @@ final class AttachmentTest extends TestCase
         static::assertSame('application/pdf', $attachment->mimeType);
         static::assertSame($stream, $attachment->content);
     }
+
+    #[Test]
+    public function it_can_create_a_cid_compliant_attachment(): void
+    {
+        $attachment = Attachment::cid(
+            'some@uri.com',
+            'name',
+            'filename.pdf',
+            $stream = MemoryStream::create(),
+        );
+
+        static::assertSame('<some@uri.com>', $attachment->id);
+        static::assertSame('name', $attachment->name);
+        static::assertSame('filename.pdf', $attachment->filename);
+        static::assertSame('application/pdf', $attachment->mimeType);
+        static::assertSame($stream, $attachment->content);
+    }
 }

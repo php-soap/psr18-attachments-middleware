@@ -9,6 +9,7 @@ use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
 use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
 use VeeWee\Reflecta\Iso\Iso;
 use VeeWee\Xml\Writer\Writer;
+use function Psl\Type\non_empty_string;
 use function VeeWee\Xml\Writer\Builder\attribute;
 use function VeeWee\Xml\Writer\Builder\namespaced_element;
 use function VeeWee\Xml\Writer\Mapper\memory_output;
@@ -26,35 +27,67 @@ final readonly class XopIncludeEncoder implements XmlEncoder
     }
 
     /**
+     * Encodes an attachment to a <xop:Include> element based on the XOP specification:
+     *
+     * @see https://www.w3.org/TR/xop10/#RFC2392
+     *
      * @return Iso<Attachment, non-empty-string>
      */
     public function iso(Context $context): Iso
     {
+        $cid = $this->cid();
+
         return new Iso(
             /**
              * @return non-empty-string
              */
-            function (Attachment $raw): string {
-
-                $this->attachmentStorage->requestAttachments()->add($raw);
-
+            static function (Attachment $raw) use ($cid): string {
                 /** @var non-empty-string */
                 return Writer::inMemory()
                     ->write(namespaced_element(
                         self::XMLNS_XOP,
                         'xop',
                         'Include',
-                        attribute('href', 'cid:' . $raw->id)
+                        attribute('href', $cid->to($raw))
                     ))
                     ->map(memory_output());
             },
             /**
              * @param non-empty-string|Element $xml
              */
-            function (Element|string $xml): Attachment {
+            static function (Element|string $xml) use ($cid) : Attachment {
                 $element = ($xml instanceof Element ? $xml : Element::fromString($xml))->element();
                 $href = $element->getAttribute('href');
-                $id = preg_replace('/^cid:(.*)/', '$1', $href);
+
+                return $cid->from(non_empty_string()->assert($href));
+            }
+        );
+    }
+
+    /**
+     * Encodes the cid href for the attachment based on the cid specification:
+     *
+     * @see https://www.ietf.org/rfc/rfc2392.txt
+     *
+     * @return Iso<Attachment, non-empty-string>
+     */
+    private function cid(): Iso
+    {
+        /** @var Iso<Attachment, non-empty-string> */
+        return new Iso(
+            /**
+             * @return non-empty-string
+             */
+            function (Attachment $raw): string {
+                $this->attachmentStorage->requestAttachments()->add($raw);
+
+                return 'cid:' . preg_replace('/^<(.*)>$/', '$1', $raw->id);
+            },
+            /**
+             * @param non-empty-string $xml
+             */
+            function (string $xml): Attachment {
+                $id = '<' . preg_replace('/^cid:(.*)/', '$1', $xml) . '>';
 
                 return $this->attachmentStorage->responseAttachments()->findById($id);
             }

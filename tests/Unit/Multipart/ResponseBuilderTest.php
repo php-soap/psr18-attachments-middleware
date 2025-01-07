@@ -81,7 +81,7 @@ final class ResponseBuilderTest extends TestCase
     }
 
     #[Test]
-    public function it_can_parse_mtom_related_multipart(): void
+    public function it_can_parse_mtom_related_multipart_with_cid_compliance(): void
     {
         $attachmentStorage = self::createAttachmentsStore();
         $responseFactory = Psr17FactoryDiscovery::findResponseFactory();
@@ -100,14 +100,14 @@ final class ResponseBuilderTest extends TestCase
                     <SOAP-ENV:Body xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"/>
                 </SOAP-ENV:Envelope>
                 --{$boundary}
-                Content-ID: attachment1
+                Content-ID: <attachment1@domain.com>
                 Content-Type: text/plain
                 Content-Disposition: attachment; name="file1"; filename="attachment1.txt"
                 Content-Transfer-Encoding: binary
                 
                 attachment1
                 --{$boundary}
-                Content-ID: attachment2
+                Content-ID: <attachment2@domain.com>
                 Content-Type: text/plain
                 Content-Disposition: attachment; name="file2"; filename="attachment2.txt"
                 Content-Transfer-Encoding: binary
@@ -130,21 +130,23 @@ final class ResponseBuilderTest extends TestCase
             EOXML,
             (string) $actual->getBody()
         );
-        self::assertResponseAttachments($attachmentStorage);
+        self::assertResponseAttachments($attachmentStorage, ['<attachment1@domain.com>', '<attachment2@domain.com>']);
     }
 
-    private static function assertResponseAttachments(AttachmentStorage $storage): void
-    {
+    private static function assertResponseAttachments(
+        AttachmentStorage $storage,
+        array $expectedIds = ['attachment1', 'attachment2']
+    ): void {
         $responseAttachments = [...$storage->responseAttachments()];
         static::assertCount(2, $responseAttachments);
 
-        static::assertSame('attachment1', $responseAttachments[0]->id);
+        static::assertSame($expectedIds[0], $responseAttachments[0]->id);
         static::assertSame('file1', $responseAttachments[0]->name);
         static::assertSame('attachment1.txt', $responseAttachments[0]->filename);
         static::assertSame('text/plain', $responseAttachments[0]->mimeType);
         static::assertSame('attachment1', $responseAttachments[0]->content->getContents());
 
-        static::assertSame('attachment2', $responseAttachments[1]->id);
+        static::assertSame($expectedIds[1], $responseAttachments[1]->id);
         static::assertSame('file2', $responseAttachments[1]->name);
         static::assertSame('attachment2.txt', $responseAttachments[1]->filename);
         static::assertSame('text/plain', $responseAttachments[1]->mimeType);
