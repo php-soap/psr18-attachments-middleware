@@ -46,6 +46,9 @@ $transport = Psr18Transport::createForClient(
 );
 ```
 
+This middleware will convert your regular SOAP request into a multipart SOAP request that contains the request attachments.
+A response that contains attachments will be converted back into a regular SOAP response whilst storing a copy of the attachments.
+
 ### Adding attachments
 
 Adding attachments to your request is done by using the `AttachmentsStorage` before sending your request to the SOAP server:
@@ -100,7 +103,7 @@ foreach ($attachments as $attachment) {
 
 ### XOP Includes
 
-If you are using MTOM attachments in combination with XOP you can use the `XopIncludeEncoder` to work directly with attachments from within your SOAP objects.
+If you are using MTOM attachments in combination with [XOP](https://www.w3.org/TR/xop10/) you can use the `XopIncludeEncoder` to work directly with attachments from within your SOAP objects.
 This requires you to use the [php-soap/encoder](https://github.com/php-soap/encoder) pacakge:
 
 ```sh
@@ -119,7 +122,7 @@ EncoderRegistry::default()
     ->addComplexTypeConverter(XopIncludeEncoder::XMLNS_XOP, 'Include', new XopIncludeEncoder($attachmentsStorage));
 ```
 
-This will allow you to use attachments directly from within your SOAP request and responses:
+This will allow you to use attachments directly from within your SOAP request and responses without the need of adding them to the `AttachmentStorage` manually:
 
 ```php
 use Phpro\ResourceStream\Factory\FileStream;
