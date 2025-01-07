@@ -90,7 +90,9 @@ $soapResponse = $yourSoapClient->request('Foo', $soapPayload);
 $attachments = $attachmentsStorage->responseAttachments()
 
 foreach ($attachments as $attachment) {
-    FileStream::create('path/to/your.pdf', FileStream::WRITE_MODE)->copyFrom($attachment->content);
+    $attachment->content->copyTo(
+        FileStream::create('path/to/your/'.$attachment->filename, FileStream::WRITE_MODE)
+    );
 }
 ```
 
