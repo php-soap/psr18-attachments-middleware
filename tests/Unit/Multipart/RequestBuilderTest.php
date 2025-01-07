@@ -43,7 +43,7 @@ final class RequestBuilderTest extends TestCase
         $expectedPayload = <<<EOF
         --{$boundary}
         Content-Type: text/xml; charset=UTF-8
-        Content-ID: soaprequest
+        Content-ID: <soaprequest@main>
         
         <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
             <SOAP-ENV:Body xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"/>
@@ -67,13 +67,13 @@ final class RequestBuilderTest extends TestCase
         EOF;
 
         static::assertSame($soapAction, $multipartRequest->getHeaderLine('SoapAction'));
-        static::assertSame('multipart/related; type="text/xml"; boundary="' . $boundary. '"; start="soaprequest"', $contentType);
+        static::assertSame('multipart/related; type="text/xml"; boundary="' . $boundary. '"; start="<soaprequest@main>"', $contentType);
         static::assertSame(self::crlf($expectedPayload), (string) $multipartRequest->getBody());
     }
 
 
     #[Test]
-    public function it_can_build_mtom_related_multipart(): void
+    public function it_can_build_mtom_related_multipart_with_explicit_soap_action_info(): void
     {
         $storage = $this->createAttachmentsStore();
         $requestBuilder = RequestBuilder::default();
@@ -86,8 +86,8 @@ final class RequestBuilderTest extends TestCase
 
         $expectedPayload = <<<EOF
         --{$boundary}
-        Content-Type: application/xop+xml; charset=UTF-8; type=application/soap+xml
-        Content-ID: soaprequest
+        Content-Type: application/xop+xml; charset=UTF-8; type="application/soap+xml; action=\"foo\""
+        Content-ID: <soaprequest@main>
         
         <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
             <SOAP-ENV:Body xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"/>
@@ -110,7 +110,49 @@ final class RequestBuilderTest extends TestCase
 
         EOF;
 
-        static::assertSame('multipart/related; type="application/xop+xml"; boundary="'.$boundary.'"; start="soaprequest"; start-info="application/soap+xml"', $contentType);
+        static::assertSame('multipart/related; type="application/xop+xml"; boundary="'.$boundary.'"; start="<soaprequest@main>"; start-info="application/soap+xml; action=\"foo\""', $contentType);
+        static::assertSame(self::crlf($expectedPayload), (string) $multipartRequest->getBody());
+    }
+
+    #[Test]
+    public function it_can_build_mtom_related_multipart_without_soap_action_info(): void
+    {
+        $storage = $this->createAttachmentsStore();
+        $requestBuilder = RequestBuilder::default();
+        $request = self::createSoapRequest()
+            ->withAddedHeader('Content-Type', 'application/soap+xml');
+
+        $multipartRequest = $requestBuilder($request, $storage, AttachmentType::Mtom);
+        $contentType = $multipartRequest->getHeaderLine('Content-Type');
+        $boundary = StreamedPart::getHeaderOption($contentType, 'boundary');
+
+        $expectedPayload = <<<EOF
+        --{$boundary}
+        Content-Type: application/xop+xml; charset=UTF-8; type="application/soap+xml"
+        Content-ID: <soaprequest@main>
+        
+        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+            <SOAP-ENV:Body xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"/>
+        </SOAP-ENV:Envelope>
+        --{$boundary}
+        Content-ID: attachment1
+        Content-Type: text/plain
+        Content-Disposition: attachment; name="file1"; filename="attachment1.txt"
+        Content-Transfer-Encoding: binary
+        
+        attachment1
+        --{$boundary}
+        Content-ID: attachment2
+        Content-Type: text/plain
+        Content-Disposition: attachment; name="file2"; filename="attachment2.txt"
+        Content-Transfer-Encoding: binary
+        
+        attachment2
+        --{$boundary}--
+
+        EOF;
+
+        static::assertSame('multipart/related; type="application/xop+xml"; boundary="'.$boundary.'"; start="<soaprequest@main>"; start-info="application/soap+xml"', $contentType);
         static::assertSame(self::crlf($expectedPayload), (string) $multipartRequest->getBody());
     }
 

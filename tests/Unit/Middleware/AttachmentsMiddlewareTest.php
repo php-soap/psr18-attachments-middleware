@@ -29,12 +29,12 @@ final class AttachmentsMiddlewareTest extends TestCase
         $mockClient->setDefaultResponse(
             Psr17FactoryDiscovery::findResponseFactory()
                 ->createResponse(200)
-                ->withAddedHeader('Content-Type', 'multipart/related; type="text/xml"; boundary="' . $boundary. '"; start="soaprequest"')
+                ->withAddedHeader('Content-Type', 'multipart/related; type="text/xml"; boundary="' . $boundary. '"; start="<soaprequest@main>"')
                 ->withBody(Psr17FactoryDiscovery::findStreamFactory()->createStream(
                     <<<EORESPONSE
                     --{$boundary}
                     Content-Type: text/xml; charset=UTF-8
-                    Content-ID: soaprequest
+                    Content-ID: <soaprequest@main>
                     
                     <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
                         <SOAP-ENV:Body xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"/>
@@ -71,7 +71,7 @@ final class AttachmentsMiddlewareTest extends TestCase
         );
         $requestContentType = $mockClient->getLastRequest()->getHeaderLine('Content-Type');
         static::assertStringContainsString('multipart/related; type="text/xml";', $requestContentType);
-        static::assertStringContainsString('start="soaprequest"', $requestContentType);
+        static::assertStringContainsString('start="<soaprequest@main>"', $requestContentType);
         static::assertCount(0, $storage->requestAttachments());
         static::assertCount(1, $storage->responseAttachments());
         static::assertSame(
