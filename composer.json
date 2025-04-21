@@ -25,7 +25,6 @@
         "php-http/multipart-stream-builder": "^1.4",
         "riverline/multipart-parser": "^2.1",
         "php-soap/psr18-transport": "^1.7",
-        "symfony/http-client": "^7.2",
         "azjezz/psl": "^3.1"
     },
     "require-dev": {
@@ -38,7 +37,7 @@
     },
     "config": {
         "allow-plugins": {
-            "php-http/discovery": true
+            "php-http/discovery": false
         }
     }
 }
