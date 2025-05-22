@@ -52,14 +52,17 @@ final readonly class ResponseBuilder implements ResponseBuilderInterface
         $mainPart = null;
         $attachments = $attachmentStorage->responseAttachments();
         foreach ($document->getParts() as $part) {
+            // When no "start" is provided, the first part should be considered the main part.
+            // @see https://datatracker.ietf.org/doc/html/rfc2387#section-3.2
             if (null === $mainPart && null === $start) {
                 $mainPart = $part;
                 continue;
             }
-            $mimeType = $part->getMimeType();
-            $id = string()->coerce($part->getHeader('Content-ID'));
 
-            if ((isset($start) && $start && $id === $start) || $mimeType === $soapType) {
+            $mimeType = $part->getMimeType();
+            $id = string()->coerce($part->getHeader('Content-ID', ''));
+
+            if ($start !== null && $id === $start) {
                 $mainPart = $part;
                 continue;
             }
