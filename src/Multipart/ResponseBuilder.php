@@ -13,6 +13,7 @@ use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
 use Soap\Psr18AttachmentsMiddleware\Attachment\IdGenerator;
 use Soap\Psr18AttachmentsMiddleware\Exception\SoapMessageNotFoundException;
 use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
+use function Psl\Type\nullable;
 use function Psl\Type\string;
 
 final readonly class ResponseBuilder implements ResponseBuilderInterface
@@ -42,7 +43,7 @@ final readonly class ResponseBuilder implements ResponseBuilderInterface
         }
 
         $contentType = $response->getHeaderLine('Content-Type');
-        $start = string()->coerce(StreamedPart::getHeaderOption($contentType, 'start'));
+        $start = nullable(string())->coerce(StreamedPart::getHeaderOption($contentType, 'start'));
         $soapType = string()->coerce(StreamedPart::getHeaderOption($contentType, 'type', 'text/xml'));
         if ($soapType === 'application/xop+xml') {
             $soapType = string()->coerce(StreamedPart::getHeaderOption($contentType, 'start-info', 'application/soap+xml'));
@@ -51,17 +52,21 @@ final readonly class ResponseBuilder implements ResponseBuilderInterface
         $mainPart = null;
         $attachments = $attachmentStorage->responseAttachments();
         foreach ($document->getParts() as $part) {
+            if (null === $mainPart && null === $start) {
+                $mainPart = $part;
+                continue;
+            }
             $mimeType = $part->getMimeType();
             $id = string()->coerce($part->getHeader('Content-ID'));
 
-            if (($start && $id === $start) || $mimeType === $soapType) {
+            if ((isset($start) && $start && $id === $start) || $mimeType === $soapType) {
                 $mainPart = $part;
                 continue;
             }
 
             $attachments->add(new Attachment(
                 $id ?: IdGenerator::generate(),
-                $name = $part->getName() ?? 'unknown',
+                $part->getName() ?? 'unknown',
                 $part->getFileName() ?? 'unknown',
                 $mimeType,
                 TmpStream::create()->write($part->getBody())->rewind(),
@@ -69,7 +74,7 @@ final readonly class ResponseBuilder implements ResponseBuilderInterface
         }
 
         if (!$mainPart) {
-            throw SoapMessageNotFoundException::insideMultipart($start, $soapType);
+            throw SoapMessageNotFoundException::insideMultipart($start ?? '', $soapType);
         }
 
         return $this->responseFactory
