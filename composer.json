@@ -20,20 +20,21 @@
         }
     ],
     "require": {
-        "php": "~8.2.0 || ~8.3.0 || ~8.4.0",
+        "php": "~8.3.0 || ~8.4.0 || ~8.5.0",
         "phpro/resource-stream": "^1.0",
         "php-http/multipart-stream-builder": "^1.4",
         "riverline/multipart-parser": "^2.1",
-        "php-soap/psr18-transport": "^1.7",
-        "azjezz/psl": "^3.1"
+        "php-soap/psr18-transport": "^1.8",
+        "azjezz/psl": "^3.1 || ^4.0"
     },
     "require-dev": {
         "nyholm/psr7": "^1.8",
-        "php-soap/encoding": "~0.16.0",
-        "vimeo/psalm": "^5.26",
+        "php-soap/encoding": "~0.22.0",
+        "vimeo/psalm": "~6.13.0",
         "php-standard-library/psalm-plugin": "^2.3",
-        "phpunit/phpunit": "^10.5.40",
-        "php-http/mock-client": "^1.6"
+        "phpunit/phpunit": "~12.4.0",
+        "php-http/mock-client": "^1.6",
+        "php-cs-fixer/shim": "~3.88.0"
     },
     "config": {
         "allow-plugins": {
