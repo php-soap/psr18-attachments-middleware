@@ -9,6 +9,7 @@ use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
 use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
 use VeeWee\Reflecta\Iso\Iso;
 use VeeWee\Xml\Writer\Writer;
+use function Psl\Regex\replace;
 use function Psl\Type\non_empty_string;
 use function VeeWee\Xml\Writer\Builder\attribute;
 use function VeeWee\Xml\Writer\Builder\namespaced_element;
@@ -81,13 +82,13 @@ final readonly class XopIncludeEncoder implements XmlEncoder
             function (Attachment $raw): string {
                 $this->attachmentStorage->requestAttachments()->add($raw);
 
-                return 'cid:' . preg_replace('/^<(.*)>$/', '$1', $raw->id);
+                return 'cid:' . replace($raw->id, '/^<(.*)>$/', '$1');
             },
             /**
              * @param non-empty-string $xml
              */
             function (string $xml): Attachment {
-                $id = '<' . preg_replace('/^cid:(.*)/', '$1', $xml) . '>';
+                $id = '<' . replace($xml, '/^cid:(.*)/', '$1') . '>';
 
                 return $this->attachmentStorage->responseAttachments()->findById($id);
             }
