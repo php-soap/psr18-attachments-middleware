@@ -29,7 +29,7 @@
     },
     "require-dev": {
         "nyholm/psr7": "^1.8",
-        "php-soap/encoding": "~0.27",
+        "php-soap/encoding": "~0.28",
         "vimeo/psalm": "~6.13.0",
         "php-standard-library/psalm-plugin": "^2.3",
         "phpunit/phpunit": "~12.4",
