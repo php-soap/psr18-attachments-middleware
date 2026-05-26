@@ -16,7 +16,7 @@ use function VeeWee\Xml\Writer\Builder\namespaced_element;
 use function VeeWee\Xml\Writer\Mapper\memory_output;
 
 /**
- * @template-implements XmlEncoder<Attachment, non-empty-string>
+ * @template-implements XmlEncoder<Attachment, Attachment, non-empty-string, Element|non-empty-string>
  */
 final readonly class XopIncludeEncoder implements XmlEncoder
 {
@@ -32,7 +32,7 @@ final readonly class XopIncludeEncoder implements XmlEncoder
      *
      * @see https://www.w3.org/TR/xop10/#RFC2392
      *
-     * @return Iso<Attachment, non-empty-string>
+     * @return Iso<Attachment, Attachment, non-empty-string, Element|non-empty-string>
      */
     public function iso(Context $context): Iso
     {
@@ -70,11 +70,11 @@ final readonly class XopIncludeEncoder implements XmlEncoder
      *
      * @see https://www.ietf.org/rfc/rfc2392.txt
      *
-     * @return Iso<Attachment, non-empty-string>
+     * @return Iso<Attachment, Attachment, non-empty-string, non-empty-string>
      */
     private function cid(): Iso
     {
-        /** @var Iso<Attachment, non-empty-string> */
+        /** @var Iso<Attachment, Attachment, non-empty-string, non-empty-string> */
         return new Iso(
             /**
              * @return non-empty-string

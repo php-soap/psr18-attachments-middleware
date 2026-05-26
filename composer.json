@@ -33,12 +33,13 @@
     },
     "require-dev": {
         "nyholm/psr7": "^1.8",
-        "php-soap/encoding": "~0.32",
+        "php-soap/encoding": "^0.34.0",
         "vimeo/psalm": "~6.13.0",
         "php-standard-library/psalm-plugin": "^2.4",
         "phpunit/phpunit": "~12.4",
         "php-http/mock-client": "^1.6",
-        "php-cs-fixer/shim": "~3.88.0"
+        "php-cs-fixer/shim": "~3.88.0",
+        "veewee/reflecta": "^1.0.0"
     },
     "config": {
         "allow-plugins": {
