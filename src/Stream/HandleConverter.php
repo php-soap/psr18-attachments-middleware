@@ -12,7 +12,7 @@ use Psl\IO\ReadHandleInterface;
  * This keeps multipart bodies and parsed attachments memory-bounded: data is spilled to a
  * temporary file instead of being held in a single PHP string.
  */
-final class HandleToResource
+final class HandleConverter
 {
     private const int CHUNK_SIZE = 8192;
 
@@ -24,15 +24,15 @@ final class HandleToResource
      *
      * @return resource
      */
-    public static function resource(ReadHandleInterface $handle): mixed
+    public static function intoResource(ReadHandleInterface $handle): mixed
     {
-        return self::stream($handle)->keepAlive()->unwrap();
+        return self::intoStream($handle)->keepAlive()->unwrap();
     }
 
     /**
      * @return ResourceStream<resource> A rewound temporary stream containing all data read from the handle.
      */
-    public static function stream(ReadHandleInterface $handle): ResourceStream
+    public static function intoStream(ReadHandleInterface $handle): ResourceStream
     {
         $stream = TmpStream::create();
         while (true) {

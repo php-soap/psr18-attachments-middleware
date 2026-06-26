@@ -14,7 +14,7 @@ use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
 use Soap\Psr18AttachmentsMiddleware\Attachment\IdGenerator;
 use Soap\Psr18AttachmentsMiddleware\Exception\SoapMessageNotFoundException;
 use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
-use Soap\Psr18AttachmentsMiddleware\Stream\HandleToResource;
+use Soap\Psr18AttachmentsMiddleware\Stream\HandleConverter;
 use Soap\Psr18AttachmentsMiddleware\Stream\StreamReadHandle;
 
 final readonly class ResponseBuilder implements ResponseBuilderInterface
@@ -68,12 +68,12 @@ final readonly class ResponseBuilder implements ResponseBuilderInterface
             // When no "start" is provided, the first part should be considered the main part.
             // @see https://datatracker.ietf.org/doc/html/rfc2387#section-3.2
             if (null === $mainPart && null === $start) {
-                $mainPart = HandleToResource::stream($part->body());
+                $mainPart = HandleConverter::intoStream($part->body());
                 continue;
             }
 
             if ($start !== null && $id === $start) {
-                $mainPart = HandleToResource::stream($part->body());
+                $mainPart = HandleConverter::intoStream($part->body());
                 continue;
             }
 
@@ -93,7 +93,7 @@ final readonly class ResponseBuilder implements ResponseBuilderInterface
                 $disposition?->parameters->get('name') ?? 'unknown',
                 $disposition?->filename() ?? 'unknown',
                 $part->mediaType->essence(),
-                HandleToResource::stream($part->body()),
+                HandleConverter::intoStream($part->body()),
             ));
         }
 
