@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Soap\Psr18AttachmentsMiddleware\Mime;
+namespace Soap\Psr18AttachmentsMiddleware\Stream;
 
 use Psl\Async\CancellationTokenInterface;
 use Psl\Async\NullCancellationToken;

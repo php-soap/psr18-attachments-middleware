@@ -12,8 +12,8 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
-use Soap\Psr18AttachmentsMiddleware\Mime\StreamCopy;
 use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
+use Soap\Psr18AttachmentsMiddleware\Stream\HandleToResource;
 use Soap\Psr18Transport\HttpBinding\SoapActionDetector;
 use function Psl\Result\try_catch;
 
@@ -98,7 +98,7 @@ final readonly class RequestBuilder implements RequestBuilderInterface
             })
             ->withBody(
                 $this->streamFactory->createStreamFromResource(
-                    StreamCopy::toResource($related->body())
+                    HandleToResource::resource($related->body())
                 )
             );
 

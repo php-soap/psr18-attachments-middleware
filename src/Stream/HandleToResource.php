@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Soap\Psr18AttachmentsMiddleware\Mime;
+namespace Soap\Psr18AttachmentsMiddleware\Stream;
 
 use Phpro\ResourceStream\Factory\TmpStream;
 use Phpro\ResourceStream\ResourceStream;
@@ -12,7 +12,7 @@ use Psl\IO\ReadHandleInterface;
  * This keeps multipart bodies and parsed attachments memory-bounded: data is spilled to a
  * temporary file instead of being held in a single PHP string.
  */
-final class StreamCopy
+final class HandleToResource
 {
     private const int CHUNK_SIZE = 8192;
 
@@ -24,15 +24,15 @@ final class StreamCopy
      *
      * @return resource
      */
-    public static function toResource(ReadHandleInterface $handle): mixed
+    public static function resource(ReadHandleInterface $handle): mixed
     {
-        return self::toResourceStream($handle)->keepAlive()->unwrap();
+        return self::stream($handle)->keepAlive()->unwrap();
     }
 
     /**
      * @return ResourceStream<resource> A rewound temporary stream containing all data read from the handle.
      */
-    public static function toResourceStream(ReadHandleInterface $handle): ResourceStream
+    public static function stream(ReadHandleInterface $handle): ResourceStream
     {
         $stream = TmpStream::create();
         while (true) {

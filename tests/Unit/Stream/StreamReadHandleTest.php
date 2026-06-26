@@ -1,11 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace SoapTest\Psr18AttachmentsMiddleware\Unit\Mime;
+namespace SoapTest\Psr18AttachmentsMiddleware\Unit\Stream;
 
 use Nyholm\Psr7\Stream;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Soap\Psr18AttachmentsMiddleware\Mime\StreamReadHandle;
+use Soap\Psr18AttachmentsMiddleware\Stream\StreamReadHandle;
 
 final class StreamReadHandleTest extends TestCase
 {
