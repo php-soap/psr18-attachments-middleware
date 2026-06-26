@@ -4,17 +4,18 @@ namespace Soap\Psr18AttachmentsMiddleware\Multipart;
 
 use Http\Discovery\Psr17FactoryDiscovery;
 use Phpro\ResourceStream\Factory\TmpStream;
+use Psl\MIME\ContentDisposition;
+use Psl\MIME\Exception\ExceptionInterface as MimeException;
+use Psl\MIME\MediaType;
+use Psl\MIME\MultiPart\Parser;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
-use Riverline\MultiPartParser\Converters\PSR7;
-use Riverline\MultiPartParser\StreamedPart;
 use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
 use Soap\Psr18AttachmentsMiddleware\Attachment\IdGenerator;
 use Soap\Psr18AttachmentsMiddleware\Exception\SoapMessageNotFoundException;
+use Soap\Psr18AttachmentsMiddleware\Mime\StreamReadHandle;
 use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
-use function Psl\Type\nullable;
-use function Psl\Type\string;
 
 final readonly class ResponseBuilder implements ResponseBuilderInterface
 {
@@ -32,51 +33,71 @@ final readonly class ResponseBuilder implements ResponseBuilderInterface
         );
     }
 
+    /**
+     * @psalm-suppress NoInterfaceProperties Psl\MIME\Part\PartInterface exposes $headers and $mediaType as
+     *     PHP 8.4 virtual interface properties, which psalm 6.13 cannot model yet.
+     */
     public function __invoke(
         ResponseInterface $response,
         AttachmentStorageInterface $attachmentStorage,
         AttachmentType $attachmentType
     ): ResponseInterface {
-        $document = PSR7::convert($response);
-        if (!$document->isMultiPart()) {
+        $contentType = $response->getHeaderLine('Content-Type');
+        if ($contentType === '') {
             return $response;
         }
 
-        $contentType = $response->getHeaderLine('Content-Type');
-        $start = nullable(string())->coerce(StreamedPart::getHeaderOption($contentType, 'start'));
-        $soapType = string()->coerce(StreamedPart::getHeaderOption($contentType, 'type', 'text/xml'));
+        $mediaType = MediaType::parse($contentType);
+        $boundary = $mediaType->parameters->get('boundary');
+        if ($mediaType->type !== 'multipart' || $boundary === null || $boundary === '') {
+            return $response;
+        }
+
+        $start = $mediaType->parameters->get('start');
+        $soapType = $mediaType->parameters->get('type') ?? 'text/xml';
         if ($soapType === 'application/xop+xml') {
-            $soapType = string()->coerce(StreamedPart::getHeaderOption($contentType, 'start-info', 'application/soap+xml'));
+            $soapType = $mediaType->parameters->get('start-info') ?? 'application/soap+xml';
         }
 
         $mainPart = null;
         $attachments = $attachmentStorage->responseAttachments();
-        foreach ($document->getParts() as $part) {
+        $handle = new StreamReadHandle($response->getBody());
+        foreach ((new Parser($boundary))->parse($handle) as $part) {
+            $id = $part->headers->get('Content-ID') ?? '';
+
             // When no "start" is provided, the first part should be considered the main part.
             // @see https://datatracker.ietf.org/doc/html/rfc2387#section-3.2
             if (null === $mainPart && null === $start) {
-                $mainPart = $part;
+                $mainPart = $part->body()->readAll();
                 continue;
             }
 
-            $mimeType = $part->getMimeType();
-            $id = string()->coerce($part->getHeader('Content-ID', ''));
-
             if ($start !== null && $id === $start) {
-                $mainPart = $part;
+                $mainPart = $part->body()->readAll();
                 continue;
+            }
+
+            $disposition = null;
+            $contentDisposition = $part->headers->get('Content-Disposition');
+            if ($contentDisposition !== null) {
+                try {
+                    $disposition = ContentDisposition::parse($contentDisposition);
+                } catch (MimeException) {
+                    // A malformed Content-Disposition falls back to the 'unknown' name/filename below,
+                    // matching the lenient behaviour of the previous parser.
+                }
             }
 
             $attachments->add(new Attachment(
                 $id ?: IdGenerator::generate(),
-                $part->getName() ?? 'unknown',
-                $part->getFileName() ?? 'unknown',
-                $mimeType,
-                TmpStream::create()->write($part->getBody())->rewind(),
+                $disposition?->parameters->get('name') ?? 'unknown',
+                $disposition?->filename() ?? 'unknown',
+                $part->mediaType->essence(),
+                TmpStream::create()->write($part->body()->readAll())->rewind(),
             ));
         }
 
-        if (!$mainPart) {
+        if (null === $mainPart) {
             throw SoapMessageNotFoundException::insideMultipart($start ?? '', $soapType);
         }
 
@@ -84,7 +105,7 @@ final readonly class ResponseBuilder implements ResponseBuilderInterface
             ->createResponse(
                 $response->getStatusCode()
             )->withBody(
-                $this->streamFactory->createStream($mainPart->getBody())
+                $this->streamFactory->createStream($mainPart)
             );
     }
 }

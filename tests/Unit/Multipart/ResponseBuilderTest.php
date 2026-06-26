@@ -29,6 +29,63 @@ final class ResponseBuilderTest extends TestCase
     }
 
     #[Test]
+    public function it_does_nothing_on_response_without_content_type(): void
+    {
+        $attachmentStorage = self::createAttachmentsStore();
+        $responseFactory = Psr17FactoryDiscovery::findResponseFactory();
+        $streamFactory = Psr17FactoryDiscovery::findStreamFactory();
+
+        $response = $responseFactory->createResponse(204)
+            ->withBody($streamFactory->createStream(''));
+
+        $responseBuilder = ResponseBuilder::default();
+        $actual = $responseBuilder($response, $attachmentStorage, AttachmentType::Swa);
+
+        static::assertSame($response, $actual);
+    }
+
+    #[Test]
+    public function it_falls_back_to_unknown_on_malformed_content_disposition(): void
+    {
+        $attachmentStorage = self::createAttachmentsStore();
+        $responseFactory = Psr17FactoryDiscovery::findResponseFactory();
+        $streamFactory = Psr17FactoryDiscovery::findStreamFactory();
+        $boundary = '4acabd8e751e40993fe016a494eded6';
+
+        $multipartResponse = $responseFactory->createResponse(200)
+            ->withHeader('Content-Type', 'multipart/related; type="text/xml"; boundary="' . $boundary. '"; start="soaprequest"')
+            ->withBody($streamFactory->createStream(
+                <<<EORESPONSE
+                --{$boundary}
+                Content-Type: text/xml; charset=UTF-8
+                Content-ID: soaprequest
+
+                <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+                    <SOAP-ENV:Body xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"/>
+                </SOAP-ENV:Envelope>
+                --{$boundary}
+                Content-ID: attachment1
+                Content-Type: text/plain
+                Content-Disposition: ;;; not a valid disposition
+                Content-Transfer-Encoding: binary
+
+                attachment1
+                --{$boundary}--
+                EORESPONSE
+            ));
+
+        $responseBuilder = ResponseBuilder::default();
+        $responseBuilder($multipartResponse, $attachmentStorage, AttachmentType::Swa);
+
+        $responseAttachments = [...$attachmentStorage->responseAttachments()];
+        static::assertCount(1, $responseAttachments);
+        static::assertSame('attachment1', $responseAttachments[0]->id);
+        static::assertSame('unknown', $responseAttachments[0]->name);
+        static::assertSame('unknown', $responseAttachments[0]->filename);
+        static::assertSame('attachment1', $responseAttachments[0]->content->getContents());
+    }
+
+    #[Test]
     public function it_can_parse_swa_related_multipart(): void
     {
         $attachmentStorage = self::createAttachmentsStore();
@@ -93,7 +150,7 @@ final class ResponseBuilderTest extends TestCase
             ->withBody($streamFactory->createStream(
                 <<<EORESPONSE
                 --{$boundary}
-                Content-Type: application/xop+xml; charset=UTF-8; type=application/soap+xml
+                Content-Type: application/xop+xml; charset=UTF-8; type="application/soap+xml"
                 Content-ID: soaprequest
                 
                 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
