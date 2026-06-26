@@ -3,7 +3,6 @@
 namespace Soap\Psr18AttachmentsMiddleware\Multipart;
 
 use Http\Discovery\Psr17FactoryDiscovery;
-use Phpro\ResourceStream\Factory\TmpStream;
 use Psl\MIME\ContentDisposition;
 use Psl\MIME\Exception\ExceptionInterface as MimeException;
 use Psl\MIME\MediaType;
@@ -14,6 +13,7 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
 use Soap\Psr18AttachmentsMiddleware\Attachment\IdGenerator;
 use Soap\Psr18AttachmentsMiddleware\Exception\SoapMessageNotFoundException;
+use Soap\Psr18AttachmentsMiddleware\Mime\StreamCopy;
 use Soap\Psr18AttachmentsMiddleware\Mime\StreamReadHandle;
 use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
 
@@ -68,12 +68,12 @@ final readonly class ResponseBuilder implements ResponseBuilderInterface
             // When no "start" is provided, the first part should be considered the main part.
             // @see https://datatracker.ietf.org/doc/html/rfc2387#section-3.2
             if (null === $mainPart && null === $start) {
-                $mainPart = $part->body()->readAll();
+                $mainPart = StreamCopy::toResourceStream($part->body());
                 continue;
             }
 
             if ($start !== null && $id === $start) {
-                $mainPart = $part->body()->readAll();
+                $mainPart = StreamCopy::toResourceStream($part->body());
                 continue;
             }
 
@@ -93,7 +93,7 @@ final readonly class ResponseBuilder implements ResponseBuilderInterface
                 $disposition?->parameters->get('name') ?? 'unknown',
                 $disposition?->filename() ?? 'unknown',
                 $part->mediaType->essence(),
-                TmpStream::create()->write($part->body()->readAll())->rewind(),
+                StreamCopy::toResourceStream($part->body()),
             ));
         }
 
@@ -105,7 +105,7 @@ final readonly class ResponseBuilder implements ResponseBuilderInterface
             ->createResponse(
                 $response->getStatusCode()
             )->withBody(
-                $this->streamFactory->createStream($mainPart)
+                $this->streamFactory->createStreamFromResource($mainPart->keepAlive()->rewind()->unwrap())
             );
     }
 }

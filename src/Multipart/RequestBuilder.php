@@ -4,6 +4,7 @@ namespace Soap\Psr18AttachmentsMiddleware\Multipart;
 
 use Http\Discovery\Psr17FactoryDiscovery;
 use Psl\IO\MemoryHandle;
+use Psl\IO\ReadStreamHandle;
 use Psl\MIME\Headers;
 use Psl\MIME\MultiPart\Related;
 use Psl\MIME\Part\Part;
@@ -11,6 +12,7 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
+use Soap\Psr18AttachmentsMiddleware\Mime\StreamCopy;
 use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
 use Soap\Psr18Transport\HttpBinding\SoapActionDetector;
 use function Psl\Result\try_catch;
@@ -31,6 +33,10 @@ final readonly class RequestBuilder implements RequestBuilderInterface
         );
     }
 
+    /**
+     * Note: each request attachment is streamed from its underlying resource into the multipart body,
+     * leaving its cursor at EOF. The provided attachments are single-use and must not be reused after this call.
+     */
     public function __invoke(
         RequestInterface $request,
         AttachmentStorageInterface $attachmentStorage,
@@ -76,7 +82,7 @@ final readonly class RequestBuilder implements RequestBuilderInterface
                     )],
                     ['Content-Transfer-Encoding', 'binary'],
                 ]),
-                new MemoryHandle($attachment->content->rewind()->getContents()),
+                new ReadStreamHandle($attachment->content->rewind()->unwrap()),
             ));
         }
 
@@ -91,7 +97,9 @@ final readonly class RequestBuilder implements RequestBuilderInterface
                 AttachmentType::Mtom => 'multipart/related; type="application/xop+xml"; boundary="' . $boundary . '"; start="<soaprequest@main>"; start-info="application/soap+xml'.$contentTypeAction.'"',
             })
             ->withBody(
-                $this->streamFactory->createStream($related->body()->readAll())
+                $this->streamFactory->createStreamFromResource(
+                    StreamCopy::toResource($related->body())
+                )
             );
 
         if ($attachmentType === AttachmentType::Swa) {
