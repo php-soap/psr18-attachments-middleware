@@ -1,0 +1,10 @@
+name: interop
+
+on: [push, pull_request]
+
+jobs:
+  interop:
+    uses: php-soap/java-interop/.github/workflows/interop.yml@main
+    with:
+      package: php-soap/psr18-attachments-middleware
+      suites: attachments

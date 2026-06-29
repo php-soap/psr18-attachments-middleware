@@ -6,8 +6,8 @@ use Http\Discovery\Psr17FactoryDiscovery;
 use Phpro\ResourceStream\Factory\MemoryStream;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psl\MIME\MediaType;
 use Psr\Http\Message\RequestInterface;
-use Riverline\MultiPartParser\StreamedPart;
 use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
 use Soap\Psr18AttachmentsMiddleware\Multipart\AttachmentType;
 use Soap\Psr18AttachmentsMiddleware\Multipart\RequestBuilder;
@@ -38,7 +38,7 @@ final class RequestBuilderTest extends TestCase
 
         $multipartRequest = $requestBuilder($request, $storage, AttachmentType::Swa);
         $contentType = $multipartRequest->getHeaderLine('Content-Type');
-        $boundary = StreamedPart::getHeaderOption($contentType, 'boundary');
+        $boundary = MediaType::parse($contentType)->parameters->get('boundary');
 
         $expectedPayload = <<<EOF
         --{$boundary}
@@ -82,7 +82,7 @@ final class RequestBuilderTest extends TestCase
 
         $multipartRequest = $requestBuilder($request, $storage, AttachmentType::Mtom);
         $contentType = $multipartRequest->getHeaderLine('Content-Type');
-        $boundary = StreamedPart::getHeaderOption($contentType, 'boundary');
+        $boundary = MediaType::parse($contentType)->parameters->get('boundary');
 
         $expectedPayload = <<<EOF
         --{$boundary}
@@ -124,7 +124,7 @@ final class RequestBuilderTest extends TestCase
 
         $multipartRequest = $requestBuilder($request, $storage, AttachmentType::Mtom);
         $contentType = $multipartRequest->getHeaderLine('Content-Type');
-        $boundary = StreamedPart::getHeaderOption($contentType, 'boundary');
+        $boundary = MediaType::parse($contentType)->parameters->get('boundary');
 
         $expectedPayload = <<<EOF
         --{$boundary}

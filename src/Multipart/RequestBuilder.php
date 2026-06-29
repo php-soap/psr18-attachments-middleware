@@ -3,12 +3,17 @@
 namespace Soap\Psr18AttachmentsMiddleware\Multipart;
 
 use Http\Discovery\Psr17FactoryDiscovery;
-use Http\Message\MultipartStream\MultipartStreamBuilder;
+use Psl\IO\MemoryHandle;
+use Psl\IO\ReadStreamHandle;
+use Psl\MIME\Headers;
+use Psl\MIME\MultiPart\Related;
+use Psl\MIME\Part\Part;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
 use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
+use Soap\Psr18AttachmentsMiddleware\Stream\HandleConverter;
 use Soap\Psr18Transport\HttpBinding\SoapActionDetector;
 use function Psl\Result\try_catch;
 
@@ -28,6 +33,10 @@ final readonly class RequestBuilder implements RequestBuilderInterface
         );
     }
 
+    /**
+     * Note: each request attachment is streamed from its underlying resource into the multipart body,
+     * leaving its cursor at EOF. The provided attachments are single-use and must not be reused after this call.
+     */
     public function __invoke(
         RequestInterface $request,
         AttachmentStorageInterface $attachmentStorage,
@@ -38,8 +47,6 @@ final readonly class RequestBuilder implements RequestBuilderInterface
             return $request;
         }
 
-        $builder = new MultipartStreamBuilder($this->streamFactory);
-
         $contentTypeAction = '';
         if ($attachmentType === AttachmentType::Mtom) {
             $contentTypeAction = try_catch(
@@ -49,35 +56,37 @@ final readonly class RequestBuilder implements RequestBuilderInterface
             $contentTypeAction = $contentTypeAction ? '; action=\"'.$contentTypeAction.'\"' : '';
         }
 
-        $builder->addData(
-            (string) $request->getBody(),
-            [
-                'Content-Type' => match ($attachmentType) {
-                    AttachmentType::Swa => 'text/xml; charset=UTF-8',
-                    AttachmentType::Mtom => 'application/xop+xml; charset=UTF-8; type="application/soap+xml'.$contentTypeAction.'"',
-                },
-                'Content-ID' => '<soaprequest@main>'
-            ]
+        $related = new Related(
+            new Part(
+                Headers::fromPairs([
+                    ['Content-Type', match ($attachmentType) {
+                        AttachmentType::Swa => 'text/xml; charset=UTF-8',
+                        AttachmentType::Mtom => 'application/xop+xml; charset=UTF-8; type="application/soap+xml'.$contentTypeAction.'"',
+                    }],
+                    ['Content-ID', '<soaprequest@main>'],
+                ]),
+                new MemoryHandle((string) $request->getBody()),
+            )
         );
 
         /** @var Attachment $attachment */
         foreach ($attachments as $attachment) {
-            $builder->addData(
-                $attachment->content->rewind()->unwrap(),
-                [
-                    'Content-ID' => $attachment->id,
-                    'Content-Type' => $attachment->mimeType,
-                    'Content-Disposition' => sprintf(
+            $related->addPart(new Part(
+                Headers::fromPairs([
+                    ['Content-ID', $attachment->id],
+                    ['Content-Type', $attachment->mimeType],
+                    ['Content-Disposition', sprintf(
                         'attachment; name="%s"; filename="%s"',
                         $attachment->name,
                         $attachment->filename
-                    ),
-                    'Content-Transfer-Encoding' => 'binary',
-                ]
-            );
+                    )],
+                    ['Content-Transfer-Encoding', 'binary'],
+                ]),
+                new ReadStreamHandle($attachment->content->rewind()->unwrap()),
+            ));
         }
 
-        $boundary = $builder->getBoundary();
+        $boundary = $related->boundary;
         $multipartRequest = $this->requestFactory
             ->createRequest(
                 $request->getMethod(),
@@ -88,7 +97,9 @@ final readonly class RequestBuilder implements RequestBuilderInterface
                 AttachmentType::Mtom => 'multipart/related; type="application/xop+xml"; boundary="' . $boundary . '"; start="<soaprequest@main>"; start-info="application/soap+xml'.$contentTypeAction.'"',
             })
             ->withBody(
-                $builder->build()
+                $this->streamFactory->createStreamFromResource(
+                    HandleConverter::intoResource($related->body())
+                )
             );
 
         if ($attachmentType === AttachmentType::Swa) {

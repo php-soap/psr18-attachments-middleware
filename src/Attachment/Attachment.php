@@ -2,8 +2,8 @@
 
 namespace Soap\Psr18AttachmentsMiddleware\Attachment;
 
-use Http\Message\MultipartStream\ApacheMimetypeHelper;
 use Phpro\ResourceStream\ResourceStream;
+use Psl\MIME\MediaType;
 
 final readonly class Attachment
 {
@@ -30,7 +30,7 @@ final readonly class Attachment
         ResourceStream $content,
         ?string $mimeType = null,
     ): self {
-        $mimeType ??= (new ApacheMimetypeHelper)->getMimetypeFromFilename($filename) ?? 'application/octet-stream';
+        $mimeType ??= MediaType::fromExtension(pathinfo($filename, PATHINFO_EXTENSION))?->toString() ?? 'application/octet-stream';
 
         return new self(
             IdGenerator::generate(),
@@ -56,7 +56,7 @@ final readonly class Attachment
         ResourceStream $content,
         ?string $mimeType = null,
     ): self {
-        $mimeType ??= (new ApacheMimetypeHelper)->getMimetypeFromFilename($filename) ?? 'application/octet-stream';
+        $mimeType ??= MediaType::fromExtension(pathinfo($filename, PATHINFO_EXTENSION))?->toString() ?? 'application/octet-stream';
 
         return new self(
             '<'.$uri.'>',
