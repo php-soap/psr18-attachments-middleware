@@ -67,6 +67,11 @@ final class AttachmentsCollection implements Countable, IteratorAggregate
         return null;
     }
 
+    /**
+     * Matches on id alone, so the caller owes it the same file: `Attachment::withContent()` is what
+     * guarantees that. Handing over a different file under a taken id silently changes what the
+     * collection says that id addresses.
+     */
     public function replace(Attachment $attachment): self
     {
         foreach ($this->attachments as $index => $current) {

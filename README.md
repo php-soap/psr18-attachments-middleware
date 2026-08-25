@@ -111,10 +111,15 @@ use Soap\Psr18AttachmentsMiddleware\Attachment\Cid;
 
 $attachments = $attachmentsStorage->requestAttachments();
 
-// Locate a part by whatever you know about it. Returns null instead of throwing.
+// Locate a part by whatever you know about it. Returns null instead of throwing,
+// so decide there and then what an absent part means for you.
 $invoice = $attachments->find(
     static fn (Attachment $attachment): bool => Cid::uriFor($attachment->id) === 'cid:invoice@example.com',
 );
+
+if ($invoice === null) {
+    return;
+}
 
 // Same id, name and filename; new bytes and new media type.
 $attachments->replace($invoice->withContent($sealedStream, 'application/octet-stream'));

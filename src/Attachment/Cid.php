@@ -13,6 +13,8 @@ use function Psl\Regex\replace;
 final class Cid
 {
     /**
+     * Takes the bracketed Content-ID an attachment carries, `<foo>`, and gives back `cid:foo`.
+     *
      * @return non-empty-string
      */
     public static function uriFor(string $id): string
@@ -22,6 +24,8 @@ final class Cid
     }
 
     /**
+     * Takes `cid:foo` and gives back the bracketed Content-ID, `<foo>`.
+     *
      * @return non-empty-string
      */
     public static function idFor(string $uri): string
