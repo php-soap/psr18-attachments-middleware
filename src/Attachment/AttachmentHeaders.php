@@ -6,6 +6,7 @@ use Psl\MIME\ContentDisposition;
 use Psl\MIME\Exception\ExceptionInterface as MimeException;
 use Psl\MIME\Headers;
 use Psl\MIME\MediaType;
+use Psl\MIME\Parameters;
 
 /**
  * Translates between an attachment's four facts and the MIME headers that carry them, both directions.
@@ -41,7 +42,10 @@ final class AttachmentHeaders
         $described = Headers::fromPairs([
             ['Content-ID', $id],
             ['Content-Type', $mimeType],
-            ['Content-Disposition', sprintf('attachment; name="%s"; filename="%s"', $name, $filename)],
+            ['Content-Disposition', (new ContentDisposition('attachment', Parameters::fromPairs([
+                ['name', $name],
+                ['filename', $filename],
+            ])))->toString()],
         ]);
 
         if ($extra === null) {

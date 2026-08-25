@@ -4,6 +4,7 @@ namespace SoapTest\Psr18AttachmentsMiddleware\Unit\Attachment;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psl\MIME\ContentDisposition;
 use Psl\MIME\Headers;
 use Soap\Psr18AttachmentsMiddleware\Attachment\AttachmentHeaders;
 
@@ -16,7 +17,7 @@ final class AttachmentHeadersTest extends TestCase
             [
                 ['Content-ID', '<invoice@example.com>'],
                 ['Content-Type', 'application/pdf'],
-                ['Content-Disposition', 'attachment; name="invoice"; filename="invoice.pdf"'],
+                ['Content-Disposition', 'attachment; name=invoice; filename=invoice.pdf'],
             ],
             AttachmentHeaders::compose(
                 '<invoice@example.com>',
@@ -46,11 +47,28 @@ final class AttachmentHeadersTest extends TestCase
             [
                 ['Content-ID', '<invoice@example.com>'],
                 ['Content-Type', 'application/pdf; version=1.7'],
-                ['Content-Disposition', 'attachment; name="invoice"; filename="invoice.pdf"'],
+                ['Content-Disposition', 'attachment; name=invoice; filename=invoice.pdf'],
                 ['Content-Location', 'http://example.com/invoice.pdf'],
             ],
             $composed->pairs()
         );
+    }
+
+    #[Test]
+    public function it_escapes_a_name_or_filename_that_would_close_the_quoting(): void
+    {
+        $composed = AttachmentHeaders::compose(
+            '<invoice@example.com>',
+            'in"voice',
+            're;port.pdf',
+            'application/pdf',
+            null
+        );
+
+        // The value has to survive the trip, and a header a peer cannot parse loses the whole part.
+        $disposition = ContentDisposition::parse($composed->get('Content-Disposition'));
+        static::assertSame('in"voice', $disposition->parameters->get('name'));
+        static::assertSame('re;port.pdf', $disposition->parameters->get('filename'));
     }
 
     #[Test]
@@ -98,7 +116,7 @@ final class AttachmentHeadersTest extends TestCase
     public function it_reads_the_name_and_the_filename_out_of_a_disposition(): void
     {
         $headers = Headers::fromPairs([
-            ['Content-Disposition', 'attachment; name="invoice"; filename="invoice.pdf"'],
+            ['Content-Disposition', 'attachment; name=invoice; filename=invoice.pdf'],
         ]);
 
         static::assertSame('invoice', AttachmentHeaders::name($headers));
