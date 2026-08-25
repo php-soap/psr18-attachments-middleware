@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Psl\MIME\ContentDisposition;
 use Psl\MIME\Headers;
 use Soap\Psr18AttachmentsMiddleware\Attachment\AttachmentHeaders;
+use Soap\Psr18AttachmentsMiddleware\Exception\InvalidHeaderValueException;
 
 final class AttachmentHeadersTest extends TestCase
 {
@@ -17,7 +18,7 @@ final class AttachmentHeadersTest extends TestCase
             [
                 ['Content-ID', '<invoice@example.com>'],
                 ['Content-Type', 'application/pdf'],
-                ['Content-Disposition', 'attachment; name=invoice; filename=invoice.pdf'],
+                ['Content-Disposition', 'attachment; name="invoice"; filename="invoice.pdf"'],
             ],
             AttachmentHeaders::compose(
                 '<invoice@example.com>',
@@ -47,7 +48,7 @@ final class AttachmentHeadersTest extends TestCase
             [
                 ['Content-ID', '<invoice@example.com>'],
                 ['Content-Type', 'application/pdf; version=1.7'],
-                ['Content-Disposition', 'attachment; name=invoice; filename=invoice.pdf'],
+                ['Content-Disposition', 'attachment; name="invoice"; filename="invoice.pdf"'],
                 ['Content-Location', 'http://example.com/invoice.pdf'],
             ],
             $composed->pairs()
@@ -69,6 +70,39 @@ final class AttachmentHeadersTest extends TestCase
         $disposition = ContentDisposition::parse($composed->get('Content-Disposition'));
         static::assertSame('in"voice', $disposition->parameters->get('name'));
         static::assertSame('re;port.pdf', $disposition->parameters->get('filename'));
+    }
+
+    #[Test]
+    public function it_refuses_a_filename_that_would_forge_a_header(): void
+    {
+        // A line break here does not produce a broken header, it produces extra ones: everything after it
+        // reads as a header of its own, and a Content-Transfer-Encoding landing there is honoured ahead of
+        // the real one.
+        $this->expectException(InvalidHeaderValueException::class);
+        $this->expectExceptionMessage('"filename" carries a control character');
+
+        AttachmentHeaders::compose(
+            '<invoice@example.com>',
+            'invoice',
+            "evil\r\nContent-Transfer-Encoding: base64",
+            'application/pdf',
+            null
+        );
+    }
+
+    #[Test]
+    public function it_refuses_a_name_that_would_forge_a_header(): void
+    {
+        $this->expectException(InvalidHeaderValueException::class);
+        $this->expectExceptionMessage('"name" carries a control character');
+
+        AttachmentHeaders::compose(
+            '<invoice@example.com>',
+            "evil\r\nX-Injected: yes",
+            'invoice.pdf',
+            'application/pdf',
+            null
+        );
     }
 
     #[Test]
@@ -116,7 +150,7 @@ final class AttachmentHeadersTest extends TestCase
     public function it_reads_the_name_and_the_filename_out_of_a_disposition(): void
     {
         $headers = Headers::fromPairs([
-            ['Content-Disposition', 'attachment; name=invoice; filename=invoice.pdf'],
+            ['Content-Disposition', 'attachment; name="invoice"; filename="invoice.pdf"'],
         ]);
 
         static::assertSame('invoice', AttachmentHeaders::name($headers));

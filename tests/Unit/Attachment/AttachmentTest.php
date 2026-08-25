@@ -175,7 +175,7 @@ final class AttachmentTest extends TestCase
             [
                 ['Content-ID', '<invoice@example.com>'],
                 ['Content-Type', 'application/pdf'],
-                ['Content-Disposition', 'attachment; name=invoice; filename=invoice.pdf'],
+                ['Content-Disposition', 'attachment; name="invoice"; filename="invoice.pdf"'],
             ],
             $attachment->headers()->pairs()
         );
@@ -198,7 +198,7 @@ final class AttachmentTest extends TestCase
             [
                 ['Content-ID', '<invoice@example.com>'],
                 ['Content-Type', 'application/xml; charset=UTF-8'],
-                ['Content-Disposition', 'attachment; name=invoice; filename=invoice.xml'],
+                ['Content-Disposition', 'attachment; name="invoice"; filename="invoice.xml"'],
             ],
             $attachment->headers()->pairs()
         );
@@ -254,7 +254,7 @@ final class AttachmentTest extends TestCase
             Headers::fromPairs([
                 ['Content-ID', '<invoice@example.com>'],
                 ['Content-Type', 'application/xml; charset=UTF-8'],
-                ['Content-Disposition', 'attachment; name=invoice; filename=invoice.xml'],
+                ['Content-Disposition', 'attachment; name="invoice"; filename="invoice.xml"'],
                 ['Content-Location', 'http://example.com/invoice.xml'],
             ]),
             $stream = MemoryStream::create()

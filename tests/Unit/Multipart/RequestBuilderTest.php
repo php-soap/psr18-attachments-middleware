@@ -52,14 +52,14 @@ final class RequestBuilderTest extends TestCase
         --{$boundary}
         Content-ID: attachment1
         Content-Type: text/plain
-        Content-Disposition: attachment; name=file1; filename=attachment1.txt
+        Content-Disposition: attachment; name="file1"; filename="attachment1.txt"
         Content-Transfer-Encoding: binary
         
         attachment1
         --{$boundary}
         Content-ID: attachment2
         Content-Type: text/plain
-        Content-Disposition: attachment; name=file2; filename=attachment2.txt
+        Content-Disposition: attachment; name="file2"; filename="attachment2.txt"
         Content-Transfer-Encoding: binary
         
         attachment2
@@ -96,14 +96,14 @@ final class RequestBuilderTest extends TestCase
         --{$boundary}
         Content-ID: attachment1
         Content-Type: text/plain
-        Content-Disposition: attachment; name=file1; filename=attachment1.txt
+        Content-Disposition: attachment; name="file1"; filename="attachment1.txt"
         Content-Transfer-Encoding: binary
         
         attachment1
         --{$boundary}
         Content-ID: attachment2
         Content-Type: text/plain
-        Content-Disposition: attachment; name=file2; filename=attachment2.txt
+        Content-Disposition: attachment; name="file2"; filename="attachment2.txt"
         Content-Transfer-Encoding: binary
         
         attachment2
@@ -138,14 +138,14 @@ final class RequestBuilderTest extends TestCase
         --{$boundary}
         Content-ID: attachment1
         Content-Type: text/plain
-        Content-Disposition: attachment; name=file1; filename=attachment1.txt
+        Content-Disposition: attachment; name="file1"; filename="attachment1.txt"
         Content-Transfer-Encoding: binary
         
         attachment1
         --{$boundary}
         Content-ID: attachment2
         Content-Type: text/plain
-        Content-Disposition: attachment; name=file2; filename=attachment2.txt
+        Content-Disposition: attachment; name="file2"; filename="attachment2.txt"
         Content-Transfer-Encoding: binary
         
         attachment2

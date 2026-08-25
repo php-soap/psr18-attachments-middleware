@@ -6,7 +6,7 @@ use Psl\MIME\ContentDisposition;
 use Psl\MIME\Exception\ExceptionInterface as MimeException;
 use Psl\MIME\Headers;
 use Psl\MIME\MediaType;
-use Psl\MIME\Parameters;
+use Soap\Psr18AttachmentsMiddleware\Exception\InvalidHeaderValueException;
 
 /**
  * Translates between an attachment's four facts and the MIME headers that carry them, both directions.
@@ -42,10 +42,11 @@ final class AttachmentHeaders
         $described = Headers::fromPairs([
             ['Content-ID', $id],
             ['Content-Type', $mimeType],
-            ['Content-Disposition', (new ContentDisposition('attachment', Parameters::fromPairs([
-                ['name', $name],
-                ['filename', $filename],
-            ])))->toString()],
+            ['Content-Disposition', sprintf(
+                'attachment; name="%s"; filename="%s"',
+                self::quoted('name', $name),
+                self::quoted('filename', $filename)
+            )],
         ]);
 
         if ($extra === null) {
@@ -67,6 +68,25 @@ final class AttachmentHeaders
         }
 
         return Headers::fromPairs($composed);
+    }
+
+    /**
+     * A parameter value as a quoted string, always quoted even where a bare token would be legal. Both are
+     * spec-compliant and plenty of parsers only ever handle this one, so the shorter form wins nothing.
+     *
+     * The library's own serializer is not used here for that reason: it drops the quoting whenever the value
+     * happens to be a token, which is a wire change with no upside on a protocol whose whole job is talking
+     * to somebody else's stack.
+     *
+     * @throws InvalidHeaderValueException
+     */
+    private static function quoted(string $parameter, string $value): string
+    {
+        if (preg_match('/[\x00-\x1F\x7F]/', $value) === 1) {
+            throw InvalidHeaderValueException::controlCharacter($parameter);
+        }
+
+        return addcslashes($value, '"\\');
     }
 
     public static function id(Headers $headers): ?string
