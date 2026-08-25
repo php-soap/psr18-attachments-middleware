@@ -3,15 +3,12 @@
 namespace Soap\Psr18AttachmentsMiddleware\Multipart;
 
 use Http\Discovery\Psr17FactoryDiscovery;
-use Psl\MIME\ContentDisposition;
-use Psl\MIME\Exception\ExceptionInterface as MimeException;
 use Psl\MIME\MediaType;
 use Psl\MIME\MultiPart\Parser;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
-use Soap\Psr18AttachmentsMiddleware\Attachment\IdGenerator;
 use Soap\Psr18AttachmentsMiddleware\Exception\SoapMessageNotFoundException;
 use Soap\Psr18AttachmentsMiddleware\Storage\AttachmentStorageInterface;
 use Soap\Psr18AttachmentsMiddleware\Stream\HandleConverter;
@@ -77,22 +74,8 @@ final readonly class ResponseBuilder implements ResponseBuilderInterface
                 continue;
             }
 
-            $disposition = null;
-            $contentDisposition = $part->headers->get('Content-Disposition');
-            if ($contentDisposition !== null) {
-                try {
-                    $disposition = ContentDisposition::parse($contentDisposition);
-                } catch (MimeException) {
-                    // A malformed Content-Disposition falls back to the 'unknown' name/filename below,
-                    // matching the lenient behaviour of the previous parser.
-                }
-            }
-
-            $attachments->add(new Attachment(
-                $id ?: IdGenerator::generate(),
-                $disposition?->parameters->get('name') ?? 'unknown',
-                $disposition?->filename() ?? 'unknown',
-                $part->mediaType->essence(),
+            $attachments->add(Attachment::fromHeaders(
+                $part->headers,
                 HandleConverter::intoStream($part->body()),
             ));
         }

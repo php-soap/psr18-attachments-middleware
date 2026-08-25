@@ -74,6 +74,44 @@ $attachmentsStorage->requestAttachments()->add(
 $yourSoapClient->request('Foo', $soapPayload);
 ```
 
+### The headers an attachment travels with
+
+Every `Attachment` carries the MIME header set it will travel with, or travelled with, on its `headers`
+property. It is a `Psl\MIME\Headers` and it is always populated.
+
+Which side supplies it depends on how the attachment was built. `new Attachment(...)`, `Attachment::create()`
+and `Attachment::cid()` derive the header set from the id, name, filename and media type you passed, and
+`RequestBuilder` puts that set on the wire as it stands, adding only a `Content-Transfer-Encoding: binary`
+when you did not supply one. `Attachment::fromHeaders()` does the opposite: the header set is the input and
+the four scalars are read out of it, which is how `ResponseBuilder` builds an attachment out of what actually
+arrived. A header parameter such as a `charset` therefore survives the round trip, while `mimeType` stays the
+media type's essence.
+
+```php
+use Psl\MIME\Headers;
+use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
+
+$attachment = Attachment::fromHeaders(
+    Headers::fromPairs([
+        ['Content-ID', '<invoice@example.com>'],
+        ['Content-Type', 'application/xml; charset=UTF-8'],
+        ['Content-Disposition', 'attachment; name="invoice"; filename="invoice.xml"'],
+    ]),
+    FileStream::create('path/to/invoice.xml', FileStream::READ_MODE),
+);
+
+$attachment->mimeType;                           // 'application/xml'
+$attachment->headers->get('Content-Type');       // 'application/xml; charset=UTF-8'
+```
+
+`withHeaders()` gives you the same file in another wire envelope, leaving the bytes untouched. It refuses a
+header set naming a different `Content-ID`, since that would silently re-address the file.
+
+A scalar with no header to read from falls back, and a fallback is never written into the header set: an
+absent `Content-Type` stays absent while `mimeType` reads `application/octet-stream`. This matters to anything
+that signs or encrypts a part's metadata, which covers the headers as they were rather than as we would have
+written them.
+
 ### Receiving attachments
 
 Receiving attachments is done by using the `AttachmentsStorage` after receiving your response from the SOAP server:
