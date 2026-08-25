@@ -99,38 +99,6 @@ foreach ($attachments as $attachment) {
 }
 ```
 
-### Transforming attachments
-
-An attachment can travel in more than one representation: a PDF and its encrypted form are the same
-file under the same `Content-ID`, with different bytes and a different media type. Middleware that
-rewrites a part in place says so with `withContent()` and puts the result back with `replace()`:
-
-```php
-use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
-use Soap\Psr18AttachmentsMiddleware\Attachment\Cid;
-
-$attachments = $attachmentsStorage->requestAttachments();
-
-// Locate a part by whatever you know about it. Returns null instead of throwing,
-// so decide there and then what an absent part means for you.
-$invoice = $attachments->find(
-    static fn (Attachment $attachment): bool => Cid::uriFor($attachment->id) === 'cid:invoice@example.com',
-);
-
-if ($invoice === null) {
-    return;
-}
-
-// Same id, name and filename; new bytes and new media type.
-$attachments->replace($invoice->withContent($sealedStream, 'application/octet-stream'));
-```
-
-`replace()` matches on the id and throws `AttachmentNotFoundException` when the attachment is not in
-the collection, so a transformation cannot quietly add a part instead of rewriting one.
-
-`Cid` translates between the `Content-ID` an attachment carries (`<invoice@example.com>`) and the URI
-the SOAP part uses to address it (`cid:invoice@example.com`), in both directions.
-
 ## Encoders
 
 ### XOP Includes
