@@ -76,8 +76,8 @@ $yourSoapClient->request('Foo', $soapPayload);
 
 ### Custom attachment headers
 
-An attachment travels with a `Content-ID`, a `Content-Type` and a `Content-Disposition` built from what you
-passed. When you need a header those cannot express, pass it along:
+An attachment travels with a `Content-ID`, a `Content-Type` and a `Content-Disposition`, built from what you
+passed. When you need a header beyond those three, pass it along:
 
 ```php
 use Psl\MIME\Headers;
@@ -99,12 +99,15 @@ $attachmentsStorage->requestAttachments()->add(
 
 They travel with the part exactly as given. A header saying something the attachment already says, like the
 `Content-Type` above, stands in for the built one rather than being added beside it, so the part never
-carries the same header twice. The `Content-ID` is the exception: that is how your attachment is addressed
-and how you look it up again, so it is always the one you gave.
+carries the same header twice.
+
+`Content-ID` is the one exception: an extra one is ignored, and the part always travels under the identity
+the attachment was built with. That is `Attachment::create()`'s generated id, or the `uri` you passed to
+`Attachment::cid()`. It has to be, because that is also the id you look the attachment up by when the
+response comes back, and a part travelling under a different one could not be found again.
 
 If you supply a `Content-Type` this way and no `$mimeType`, that header is where the media type is read
-from, so `$attachment->mimeType` and what travels always agree. `Attachment::cid()` takes `extraHeaders`
-the same way.
+from, so `$attachment->mimeType` and what travels always agree.
 
 Attachments you receive keep every header they arrived with, so you can read whatever the server sent:
 
