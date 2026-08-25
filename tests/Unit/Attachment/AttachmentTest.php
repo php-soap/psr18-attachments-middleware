@@ -116,6 +116,51 @@ final class AttachmentTest extends TestCase
     }
 
     #[Test]
+    public function it_reads_a_media_type_it_was_not_given_off_the_headers_it_was(): void
+    {
+        // The extension says nothing here, and the header is about to travel, so guessing past it would
+        // leave the scalar disagreeing with what the peer is sent.
+        $attachment = Attachment::create(
+            'report',
+            'report.dat',
+            MemoryStream::create(),
+            extraHeaders: Headers::fromPairs([['Content-Type', 'application/pdf']])
+        );
+
+        static::assertSame('application/pdf', $attachment->mimeType);
+        static::assertSame('application/pdf', $attachment->headers()->get('Content-Type'));
+    }
+
+    #[Test]
+    public function it_prefers_the_media_type_it_was_given_over_the_headers(): void
+    {
+        $attachment = Attachment::create(
+            'report',
+            'report.dat',
+            MemoryStream::create(),
+            'text/csv',
+            Headers::fromPairs([['Content-Location', 'http://example.com/report.dat']])
+        );
+
+        static::assertSame('text/csv', $attachment->mimeType);
+    }
+
+    #[Test]
+    public function it_reads_a_cid_attachment_s_media_type_off_its_headers_too(): void
+    {
+        $attachment = Attachment::cid(
+            'report@example.com',
+            'report',
+            'report.dat',
+            MemoryStream::create(),
+            extraHeaders: Headers::fromPairs([['Content-Type', 'application/pdf; version=1.7']])
+        );
+
+        static::assertSame('application/pdf', $attachment->mimeType);
+        static::assertSame('application/pdf; version=1.7', $attachment->headers()->get('Content-Type'));
+    }
+
+    #[Test]
     public function it_describes_itself_in_the_headers_it_travels_with(): void
     {
         $attachment = new Attachment(

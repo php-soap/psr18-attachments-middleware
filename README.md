@@ -102,7 +102,9 @@ They travel with the part exactly as given. A header saying something the attach
 carries the same header twice. The `Content-ID` is the exception: that is how your attachment is addressed
 and how you look it up again, so it is always the one you gave.
 
-`Attachment::cid()` takes `extraHeaders` too.
+If you supply a `Content-Type` this way and no `$mimeType`, that header is where the media type is read
+from, so `$attachment->mimeType` and what travels always agree. `Attachment::cid()` takes `extraHeaders`
+the same way.
 
 Attachments you receive keep every header they arrived with, so you can read whatever the server sent:
 

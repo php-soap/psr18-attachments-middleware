@@ -35,7 +35,7 @@ final readonly class Attachment
         ?string $mimeType = null,
         ?Headers $extraHeaders = null,
     ): self {
-        $mimeType ??= MediaType::fromExtension(pathinfo($filename, PATHINFO_EXTENSION))?->toString() ?? 'application/octet-stream';
+        $mimeType ??= self::inferMediaType($filename, $extraHeaders);
 
         return new self(
             IdGenerator::generate(),
@@ -63,7 +63,7 @@ final readonly class Attachment
         ?string $mimeType = null,
         ?Headers $extraHeaders = null,
     ): self {
-        $mimeType ??= MediaType::fromExtension(pathinfo($filename, PATHINFO_EXTENSION))?->toString() ?? 'application/octet-stream';
+        $mimeType ??= self::inferMediaType($filename, $extraHeaders);
 
         return new self(
             '<'.$uri.'>',
@@ -73,6 +73,18 @@ final readonly class Attachment
             $content,
             $extraHeaders
         );
+    }
+
+    /**
+     * A media type nobody stated: read off a Content-Type the caller supplied before falling back to a
+     * guess, since that header is the one about to travel and a guess past it would leave the scalar
+     * disagreeing with what the peer is sent.
+     */
+    private static function inferMediaType(string $filename, ?Headers $extraHeaders): string
+    {
+        return ($extraHeaders === null ? null : AttachmentHeaders::mediaType($extraHeaders))
+            ?? MediaType::fromExtension(pathinfo($filename, PATHINFO_EXTENSION))?->toString()
+            ?? 'application/octet-stream';
     }
 
     /**
