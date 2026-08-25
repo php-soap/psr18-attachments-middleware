@@ -52,4 +52,31 @@ final class AttachmentsCollection implements Countable, IteratorAggregate
 
         throw AttachmentNotFoundException::withId($id);
     }
+
+    /**
+     * @param callable(Attachment): bool $predicate
+     */
+    public function find(callable $predicate): ?Attachment
+    {
+        foreach ($this->attachments as $attachment) {
+            if ($predicate($attachment)) {
+                return $attachment;
+            }
+        }
+
+        return null;
+    }
+
+    public function replace(Attachment $attachment): self
+    {
+        foreach ($this->attachments as $index => $current) {
+            if ($current->id === $attachment->id) {
+                $this->attachments[$index] = $attachment;
+
+                return $this;
+            }
+        }
+
+        throw AttachmentNotFoundException::withId($attachment->id);
+    }
 }
