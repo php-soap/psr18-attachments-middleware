@@ -82,6 +82,40 @@ final class AttachmentTest extends TestCase
     }
 
     #[Test]
+    public function it_can_be_created_with_headers_its_four_facts_cannot_express(): void
+    {
+        $attachment = Attachment::create(
+            'invoice',
+            'invoice.xml',
+            MemoryStream::create(),
+            extraHeaders: Headers::fromPairs([['Content-Location', 'http://example.com/invoice.xml']])
+        );
+
+        static::assertSame('invoice.xml', $attachment->filename);
+        static::assertSame('application/xml', $attachment->mimeType);
+        static::assertSame(
+            'http://example.com/invoice.xml',
+            $attachment->headers()->get('Content-Location')
+        );
+    }
+
+    #[Test]
+    public function it_can_be_created_for_xop_with_the_same_headers(): void
+    {
+        $attachment = Attachment::cid(
+            'invoice@example.com',
+            'invoice',
+            'invoice.xml',
+            MemoryStream::create(),
+            extraHeaders: Headers::fromPairs([['Content-Type', 'application/xml; charset=UTF-8']])
+        );
+
+        static::assertSame('<invoice@example.com>', $attachment->id);
+        static::assertSame('application/xml', $attachment->mimeType);
+        static::assertSame('application/xml; charset=UTF-8', $attachment->headers()->get('Content-Type'));
+    }
+
+    #[Test]
     public function it_describes_itself_in_the_headers_it_travels_with(): void
     {
         $attachment = new Attachment(

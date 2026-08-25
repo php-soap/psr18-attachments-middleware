@@ -33,6 +33,7 @@ final readonly class Attachment
         string $filename,
         ResourceStream $content,
         ?string $mimeType = null,
+        ?Headers $extraHeaders = null,
     ): self {
         $mimeType ??= MediaType::fromExtension(pathinfo($filename, PATHINFO_EXTENSION))?->toString() ?? 'application/octet-stream';
 
@@ -41,7 +42,8 @@ final readonly class Attachment
             $name,
             $filename,
             $mimeType,
-            $content
+            $content,
+            $extraHeaders
         );
     }
 
@@ -59,6 +61,7 @@ final readonly class Attachment
         string $filename,
         ResourceStream $content,
         ?string $mimeType = null,
+        ?Headers $extraHeaders = null,
     ): self {
         $mimeType ??= MediaType::fromExtension(pathinfo($filename, PATHINFO_EXTENSION))?->toString() ?? 'application/octet-stream';
 
@@ -67,7 +70,8 @@ final readonly class Attachment
             $name,
             $filename,
             $mimeType,
-            $content
+            $content,
+            $extraHeaders
         );
     }
 

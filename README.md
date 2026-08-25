@@ -74,60 +74,44 @@ $attachmentsStorage->requestAttachments()->add(
 $yourSoapClient->request('Foo', $soapPayload);
 ```
 
-### The headers an attachment travels with
+### Custom attachment headers
 
-An `Attachment` holds four facts about a file, and `headers()` is how those facts are spelled as MIME:
-
-```php
-$attachment = Attachment::cid('invoice@example.com', 'invoice', 'invoice.pdf', $stream);
-
-$attachment->headers();
-// Content-ID: <invoice@example.com>
-// Content-Type: application/pdf
-// Content-Disposition: attachment; name="invoice"; filename="invoice.pdf"
-```
-
-`RequestBuilder` puts that set on the wire as it stands, adding only a `Content-Transfer-Encoding: binary`
-when you did not supply one.
-
-Pass extra headers when you need something the four facts cannot say. One naming a fact the attachment
-already describes stands in for that header rather than being added beside it, so the set never says a thing
-twice:
+An attachment travels with a `Content-ID`, a `Content-Type` and a `Content-Disposition` built from what you
+passed. When you need a header those cannot express, pass it along:
 
 ```php
 use Psl\MIME\Headers;
+use Phpro\ResourceStream\Factory\FileStream;
+use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
 
-new Attachment(
-    '<invoice@example.com>', 'invoice', 'invoice.xml', 'application/xml', $stream,
-    Headers::fromPairs([
-        ['Content-Type', 'application/xml; charset=UTF-8'],   // stands in for the described one
-        ['Content-Location', 'http://example.com/invoice.xml'], // appended
-    ]),
+$attachmentsStorage->requestAttachments()->add(
+    Attachment::create(
+        name: 'invoice',
+        filename: 'invoice.xml',
+        content: FileStream::create('path/to/invoice.xml', FileStream::READ_MODE),
+        extraHeaders: Headers::fromPairs([
+            ['Content-Type', 'application/xml; charset=UTF-8'],
+            ['Content-Location', 'http://example.com/invoice.xml'],
+        ]),
+    )
 );
 ```
 
-The one header an extra cannot restate is `Content-ID`. That is the part's identity, and an
-`AttachmentsCollection` looks an attachment up by it, so a set that re-addressed the part on the wire would
-send a file under a name nothing here answers to.
+They travel with the part exactly as given. A header saying something the attachment already says, like the
+`Content-Type` above, stands in for the built one rather than being added beside it, so the part never
+carries the same header twice. The `Content-ID` is the exception: that is how your attachment is addressed
+and how you look it up again, so it is always the one you gave.
 
-`Attachment::fromHeaders()` goes the other way, which is how `ResponseBuilder` builds an attachment out of
-what actually arrived: the facts are read out of the set and the set travels on untouched. A `charset` you
-were sent therefore survives the round trip, while `mimeType` stays the media type's essence.
+`Attachment::cid()` takes `extraHeaders` too.
+
+Attachments you receive keep every header they arrived with, so you can read whatever the server sent:
 
 ```php
-$attachment = Attachment::fromHeaders($headers, $stream);
-
-$attachment->mimeType;                       // 'application/xml'
-$attachment->headers()->get('Content-Type'); // 'application/xml; charset=UTF-8'
+foreach ($attachmentsStorage->responseAttachments() as $attachment) {
+    $attachment->headers()->get('Content-Location');   // 'http://example.com/invoice.xml'
+    $attachment->mimeType;                             // 'application/xml', without the charset
+}
 ```
-
-`AttachmentHeaders` is the translation itself, if you need it directly. Its readers answer `null` rather than
-guessing, and a header they cannot read still travels on: unreadable to us is not unreadable to the peer that
-wrote it.
-
-`withHeaders()` gives you the same file in another envelope, leaving its identity and its bytes alone.
-`withContent()` gives you the same file in another representation: it drops an extra `Content-Type`, which
-described the bytes being replaced, and keeps every other extra, which describes the file.
 
 ### Receiving attachments
 
