@@ -242,6 +242,83 @@ final class ResponseBuilderTest extends TestCase
         self::assertResponseAttachments($attachmentStorage, ['<attachment1@domain.com>', '<attachment2@domain.com>']);
     }
 
+    #[Test]
+    public function it_keeps_the_headers_an_attachment_arrived_with(): void
+    {
+        $attachmentStorage = self::createAttachmentsStore();
+        $responseFactory = Psr17FactoryDiscovery::findResponseFactory();
+        $streamFactory = Psr17FactoryDiscovery::findStreamFactory();
+        $boundary = '4acabd8e751e40993fe016a494eded6';
+
+        $multipartResponse = $responseFactory->createResponse(200)
+            ->withHeader('Content-Type', 'multipart/related; type="text/xml"; boundary="' . $boundary. '"; start="soaprequest"')
+            ->withBody($streamFactory->createStream(self::crlf(
+                <<<EORESPONSE
+                --{$boundary}
+                Content-Type: text/xml; charset=UTF-8
+                Content-ID: soaprequest
+
+                <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"/>
+                --{$boundary}
+                Content-ID: attachment1
+                Content-Type: text/plain; charset=us-ascii
+                Content-Disposition: attachment; name="file1"; filename="attachment1.txt"
+                Content-Location: http://example.com/attachment1.txt
+
+                attachment1
+                --{$boundary}--
+
+                EORESPONSE
+            )));
+
+        $responseBuilder = ResponseBuilder::default();
+        $responseBuilder($multipartResponse, $attachmentStorage, AttachmentType::Swa);
+
+        $attachment = [...$attachmentStorage->responseAttachments()][0];
+        static::assertSame('text/plain', $attachment->mimeType);
+        static::assertSame('text/plain; charset=us-ascii', $attachment->headers()->get('Content-Type'));
+        static::assertSame('http://example.com/attachment1.txt', $attachment->headers()->get('Content-Location'));
+    }
+
+    #[Test]
+    public function it_gives_a_part_without_a_content_type_the_opaque_default(): void
+    {
+        $attachmentStorage = self::createAttachmentsStore();
+        $responseFactory = Psr17FactoryDiscovery::findResponseFactory();
+        $streamFactory = Psr17FactoryDiscovery::findStreamFactory();
+        $boundary = '4acabd8e751e40993fe016a494eded6';
+
+        $multipartResponse = $responseFactory->createResponse(200)
+            ->withHeader('Content-Type', 'multipart/related; type="text/xml"; boundary="' . $boundary. '"; start="soaprequest"')
+            ->withBody($streamFactory->createStream(self::crlf(
+                <<<EORESPONSE
+                --{$boundary}
+                Content-Type: text/xml; charset=UTF-8
+                Content-ID: soaprequest
+
+                <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"/>
+                --{$boundary}
+                Content-ID: attachment1
+
+                attachment1
+                --{$boundary}--
+
+                EORESPONSE
+            )));
+
+        $responseBuilder = ResponseBuilder::default();
+        $responseBuilder($multipartResponse, $attachmentStorage, AttachmentType::Swa);
+
+        $attachment = [...$attachmentStorage->responseAttachments()][0];
+        static::assertSame('application/octet-stream', $attachment->mimeType);
+        static::assertSame('application/octet-stream', $attachment->headers()->get('Content-Type'));
+    }
+
+    private static function crlf(string $string): string
+    {
+        return str_replace("\n", "\r\n", $string);
+    }
+
     private static function assertResponseAttachments(
         AttachmentStorage $storage,
         array $expectedIds = ['attachment1', 'attachment2']

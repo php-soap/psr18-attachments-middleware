@@ -71,17 +71,15 @@ final readonly class RequestBuilder implements RequestBuilderInterface
 
         /** @var Attachment $attachment */
         foreach ($attachments as $attachment) {
+            // The attachment's own header set is what a peer covering this part's metadata will have
+            // been shown, so it travels as it stands.
+            $headers = $attachment->headers();
+            if (!$headers->has('Content-Transfer-Encoding')) {
+                $headers = $headers->with('Content-Transfer-Encoding', 'binary');
+            }
+
             $related->addPart(new Part(
-                Headers::fromPairs([
-                    ['Content-ID', $attachment->id],
-                    ['Content-Type', $attachment->mimeType],
-                    ['Content-Disposition', sprintf(
-                        'attachment; name="%s"; filename="%s"',
-                        $attachment->name,
-                        $attachment->filename
-                    )],
-                    ['Content-Transfer-Encoding', 'binary'],
-                ]),
+                $headers,
                 new ReadStreamHandle($attachment->content->rewind()->unwrap()),
             ));
         }

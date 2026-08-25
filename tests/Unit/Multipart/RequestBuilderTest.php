@@ -6,6 +6,7 @@ use Http\Discovery\Psr17FactoryDiscovery;
 use Phpro\ResourceStream\Factory\MemoryStream;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psl\MIME\Headers;
 use Psl\MIME\MediaType;
 use Psr\Http\Message\RequestInterface;
 use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
@@ -154,6 +155,61 @@ final class RequestBuilderTest extends TestCase
 
         static::assertSame('multipart/related; type="application/xop+xml"; boundary="'.$boundary.'"; start="<soaprequest@main>"; start-info="application/soap+xml"', $contentType);
         static::assertSame(self::crlf($expectedPayload), (string) $multipartRequest->getBody());
+    }
+
+    #[Test]
+    public function it_emits_the_header_set_the_attachment_carries(): void
+    {
+        $storage = new AttachmentStorage();
+        $storage->requestAttachments()->add(
+            Attachment::fromHeaders(
+                Headers::fromPairs([
+                    ['Content-ID', 'attachment1'],
+                    ['Content-Type', 'text/plain; charset=us-ascii'],
+                    ['Content-Disposition', 'attachment; name="file1"; filename="attachment1.txt"'],
+                    ['Content-Location', 'http://example.com/attachment1.txt'],
+                ]),
+                MemoryStream::create()->write('attachment1')
+            )
+        );
+
+        $multipartRequest = (RequestBuilder::default())(self::createSoapRequest(), $storage, AttachmentType::Swa);
+        $boundary = MediaType::parse($multipartRequest->getHeaderLine('Content-Type'))->parameters->get('boundary');
+
+        $expectedPart = <<<EOF
+        --{$boundary}
+        Content-ID: attachment1
+        Content-Type: text/plain; charset=us-ascii
+        Content-Disposition: attachment; name="file1"; filename="attachment1.txt"
+        Content-Location: http://example.com/attachment1.txt
+        Content-Transfer-Encoding: binary
+
+        attachment1
+        EOF;
+
+        static::assertStringContainsString(self::crlf($expectedPart), (string) $multipartRequest->getBody());
+    }
+
+    #[Test]
+    public function it_does_not_add_a_second_transfer_encoding_header(): void
+    {
+        $storage = new AttachmentStorage();
+        $storage->requestAttachments()->add(
+            Attachment::fromHeaders(
+                Headers::fromPairs([
+                    ['Content-ID', 'attachment1'],
+                    ['Content-Type', 'text/plain'],
+                    ['Content-Transfer-Encoding', '8bit'],
+                ]),
+                MemoryStream::create()->write('attachment1')
+            )
+        );
+
+        $multipartRequest = (RequestBuilder::default())(self::createSoapRequest(), $storage, AttachmentType::Swa);
+        $body = (string) $multipartRequest->getBody();
+
+        static::assertStringContainsString('Content-Transfer-Encoding: 8bit', $body);
+        static::assertStringNotContainsString('Content-Transfer-Encoding: binary', $body);
     }
 
     private static function createAttachmentsStore(): AttachmentStorage
