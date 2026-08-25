@@ -73,7 +73,7 @@ final readonly class RequestBuilder implements RequestBuilderInterface
         foreach ($attachments as $attachment) {
             // The attachment's own header set is what a peer covering this part's metadata will have
             // been shown, so it travels as it stands.
-            $headers = $attachment->headers;
+            $headers = $attachment->headers();
             if (!$headers->has('Content-Transfer-Encoding')) {
                 $headers = $headers->with('Content-Transfer-Encoding', 'binary');
             }

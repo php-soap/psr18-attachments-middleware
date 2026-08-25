@@ -76,41 +76,58 @@ $yourSoapClient->request('Foo', $soapPayload);
 
 ### The headers an attachment travels with
 
-Every `Attachment` carries the MIME header set it will travel with, or travelled with, on its `headers`
-property. It is a `Psl\MIME\Headers` and it is always populated.
+An `Attachment` holds four facts about a file, and `headers()` is how those facts are spelled as MIME:
 
-Which side supplies it depends on how the attachment was built. `new Attachment(...)`, `Attachment::create()`
-and `Attachment::cid()` derive the header set from the id, name, filename and media type you passed, and
+```php
+$attachment = Attachment::cid('invoice@example.com', 'invoice', 'invoice.pdf', $stream);
+
+$attachment->headers();
+// Content-ID: <invoice@example.com>
+// Content-Type: application/pdf
+// Content-Disposition: attachment; name="invoice"; filename="invoice.pdf"
+```
+
 `RequestBuilder` puts that set on the wire as it stands, adding only a `Content-Transfer-Encoding: binary`
-when you did not supply one. `Attachment::fromHeaders()` does the opposite: the header set is the input and
-the four scalars are read out of it, which is how `ResponseBuilder` builds an attachment out of what actually
-arrived. A header parameter such as a `charset` therefore survives the round trip, while `mimeType` stays the
-media type's essence.
+when you did not supply one.
+
+Pass extra headers when you need something the four facts cannot say. One naming a fact the attachment
+already describes stands in for that header rather than being added beside it, so the set never says a thing
+twice:
 
 ```php
 use Psl\MIME\Headers;
-use Soap\Psr18AttachmentsMiddleware\Attachment\Attachment;
 
-$attachment = Attachment::fromHeaders(
+new Attachment(
+    '<invoice@example.com>', 'invoice', 'invoice.xml', 'application/xml', $stream,
     Headers::fromPairs([
-        ['Content-ID', '<invoice@example.com>'],
-        ['Content-Type', 'application/xml; charset=UTF-8'],
-        ['Content-Disposition', 'attachment; name="invoice"; filename="invoice.xml"'],
+        ['Content-Type', 'application/xml; charset=UTF-8'],   // stands in for the described one
+        ['Content-Location', 'http://example.com/invoice.xml'], // appended
     ]),
-    FileStream::create('path/to/invoice.xml', FileStream::READ_MODE),
 );
-
-$attachment->mimeType;                           // 'application/xml'
-$attachment->headers->get('Content-Type');       // 'application/xml; charset=UTF-8'
 ```
 
-`withHeaders()` gives you the same file in another wire envelope, leaving the bytes untouched. It refuses a
-header set naming a different `Content-ID`, since that would silently re-address the file.
+The one header an extra cannot restate is `Content-ID`. That is the part's identity, and an
+`AttachmentsCollection` looks an attachment up by it, so a set that re-addressed the part on the wire would
+send a file under a name nothing here answers to.
 
-A scalar with no header to read from falls back, and a fallback is never written into the header set: an
-absent `Content-Type` stays absent while `mimeType` reads `application/octet-stream`. This matters to anything
-that signs or encrypts a part's metadata, which covers the headers as they were rather than as we would have
-written them.
+`Attachment::fromHeaders()` goes the other way, which is how `ResponseBuilder` builds an attachment out of
+what actually arrived: the facts are read out of the set and the set travels on untouched. A `charset` you
+were sent therefore survives the round trip, while `mimeType` stays the media type's essence.
+
+```php
+$attachment = Attachment::fromHeaders($headers, $stream);
+
+$attachment->mimeType;                       // 'application/xml'
+$attachment->headers()->get('Content-Type'); // 'application/xml; charset=UTF-8'
+```
+
+`AttachmentHeaders` is the translation itself, if you need it directly. Its readers answer `null` rather than
+guessing, and a header they cannot read still travels on: unreadable to us is not unreadable to the peer that
+wrote it.
+
+`withHeaders()` gives you the same file in another envelope, leaving its identity and its bytes alone.
+`withContent()` gives you the same file in another representation, and drops the extras, since they described
+the bytes being replaced.
 
 ### Receiving attachments
 

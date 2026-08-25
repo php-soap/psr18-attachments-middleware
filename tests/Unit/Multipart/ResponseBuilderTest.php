@@ -276,12 +276,12 @@ final class ResponseBuilderTest extends TestCase
 
         $attachment = [...$attachmentStorage->responseAttachments()][0];
         static::assertSame('text/plain', $attachment->mimeType);
-        static::assertSame('text/plain; charset=us-ascii', $attachment->headers->get('Content-Type'));
-        static::assertSame('http://example.com/attachment1.txt', $attachment->headers->get('Content-Location'));
+        static::assertSame('text/plain; charset=us-ascii', $attachment->headers()->get('Content-Type'));
+        static::assertSame('http://example.com/attachment1.txt', $attachment->headers()->get('Content-Location'));
     }
 
     #[Test]
-    public function it_keeps_an_absent_content_type_absent(): void
+    public function it_gives_a_part_without_a_content_type_the_opaque_default(): void
     {
         $attachmentStorage = self::createAttachmentsStore();
         $responseFactory = Psr17FactoryDiscovery::findResponseFactory();
@@ -310,7 +310,8 @@ final class ResponseBuilderTest extends TestCase
         $responseBuilder($multipartResponse, $attachmentStorage, AttachmentType::Swa);
 
         $attachment = [...$attachmentStorage->responseAttachments()][0];
-        static::assertFalse($attachment->headers->has('Content-Type'));
+        static::assertSame('application/octet-stream', $attachment->mimeType);
+        static::assertSame('application/octet-stream', $attachment->headers()->get('Content-Type'));
     }
 
     private static function crlf(string $string): string
