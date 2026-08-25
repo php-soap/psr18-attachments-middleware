@@ -52,4 +52,36 @@ final class AttachmentsCollection implements Countable, IteratorAggregate
 
         throw AttachmentNotFoundException::withId($id);
     }
+
+    /**
+     * @param callable(Attachment): bool $predicate
+     */
+    public function find(callable $predicate): ?Attachment
+    {
+        foreach ($this->attachments as $attachment) {
+            if ($predicate($attachment)) {
+                return $attachment;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Matches on id alone, so the caller owes it the same file: `Attachment::withContent()` is what
+     * guarantees that. Handing over a different file under a taken id silently changes what the
+     * collection says that id addresses.
+     */
+    public function replace(Attachment $attachment): self
+    {
+        foreach ($this->attachments as $index => $current) {
+            if ($current->id === $attachment->id) {
+                $this->attachments[$index] = $attachment;
+
+                return $this;
+            }
+        }
+
+        throw AttachmentNotFoundException::withId($attachment->id);
+    }
 }

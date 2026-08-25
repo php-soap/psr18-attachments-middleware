@@ -59,4 +59,24 @@ final class AttachmentTest extends TestCase
         static::assertSame('application/pdf', $attachment->mimeType);
         static::assertSame($stream, $attachment->content);
     }
+
+    #[Test]
+    public function it_can_carry_a_new_representation_of_the_same_file(): void
+    {
+        $attachment = Attachment::cid(
+            'some@uri.com',
+            'name',
+            'invoice.pdf',
+            MemoryStream::create(),
+        );
+
+        $sealed = $attachment->withContent($stream = MemoryStream::create(), 'application/octet-stream');
+
+        static::assertNotSame($attachment, $sealed);
+        static::assertSame('<some@uri.com>', $sealed->id);
+        static::assertSame('name', $sealed->name);
+        static::assertSame('invoice.pdf', $sealed->filename);
+        static::assertSame('application/octet-stream', $sealed->mimeType);
+        static::assertSame($stream, $sealed->content);
+    }
 }

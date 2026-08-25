@@ -66,4 +66,21 @@ final readonly class Attachment
             $content
         );
     }
+
+    /**
+     * The same file in another representation: only the bytes and the media type change,
+     * so the Content-ID keeps addressing it.
+     *
+     * @param ResourceStream<resource> $content
+     */
+    public function withContent(ResourceStream $content, string $mimeType): self
+    {
+        return new self(
+            $this->id,
+            $this->name,
+            $this->filename,
+            $mimeType,
+            $content
+        );
+    }
 }
