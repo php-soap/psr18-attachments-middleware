@@ -159,19 +159,33 @@ final class Attachment
      */
     private static function readScalarsFrom(Headers $headers, string $id, ResourceStream $content): self
     {
-        $contentType = $headers->get('Content-Type');
         $disposition = self::parseDisposition($headers->get('Content-Disposition'));
 
         $attachment = new self(
             $id,
             $disposition?->parameters->get('name') ?? 'unknown',
             $disposition?->filename() ?? 'unknown',
-            $contentType === null ? 'application/octet-stream' : MediaType::parse($contentType)->essence(),
+            self::parseEssence($headers->get('Content-Type')) ?? 'application/octet-stream',
             $content
         );
         $attachment->headers = $headers;
 
         return $attachment;
+    }
+
+    private static function parseEssence(?string $contentType): ?string
+    {
+        if ($contentType === null) {
+            return null;
+        }
+
+        try {
+            return MediaType::parse($contentType)->essence();
+        } catch (MimeException) {
+            // The header travels as it arrived either way, so a value we cannot read costs the scalar
+            // rather than the message.
+            return null;
+        }
     }
 
     private static function parseDisposition(?string $contentDisposition): ?ContentDisposition

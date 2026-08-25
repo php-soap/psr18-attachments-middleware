@@ -203,6 +203,21 @@ final class AttachmentTest extends TestCase
     }
 
     #[Test]
+    public function it_falls_back_to_octet_stream_on_a_malformed_content_type(): void
+    {
+        $attachment = Attachment::fromHeaders(
+            Headers::fromPairs([
+                ['Content-ID', '<invoice@example.com>'],
+                ['Content-Type', 'not a media type at all'],
+            ]),
+            MemoryStream::create()
+        );
+
+        static::assertSame('application/octet-stream', $attachment->mimeType);
+        static::assertSame('not a media type at all', $attachment->headers->get('Content-Type'));
+    }
+
+    #[Test]
     public function it_falls_back_to_unknown_on_a_malformed_content_disposition(): void
     {
         $attachment = Attachment::fromHeaders(
