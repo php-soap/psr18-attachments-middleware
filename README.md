@@ -126,8 +126,8 @@ guessing, and a header they cannot read still travels on: unreadable to us is no
 wrote it.
 
 `withHeaders()` gives you the same file in another envelope, leaving its identity and its bytes alone.
-`withContent()` gives you the same file in another representation, and drops the extras, since they described
-the bytes being replaced.
+`withContent()` gives you the same file in another representation: it drops an extra `Content-Type`, which
+described the bytes being replaced, and keeps every other extra, which describes the file.
 
 ### Receiving attachments
 

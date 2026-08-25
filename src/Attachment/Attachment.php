@@ -107,8 +107,9 @@ final readonly class Attachment
      * The same file in another representation: only the bytes and the media type change, so the Content-ID
      * keeps addressing it.
      *
-     * The extras are dropped rather than carried over. They described the bytes being replaced, and a
-     * Content-Type parameter belonging to the old representation would outrank the new media type.
+     * The media type is also the only extra header this drops. One describing the bytes being replaced
+     * would outrank the type they are being replaced with; every other extra describes the file, which is
+     * still the same file.
      *
      * @param ResourceStream<resource> $content
      */
@@ -119,7 +120,8 @@ final readonly class Attachment
             $this->name,
             $this->filename,
             $mimeType,
-            $content
+            $content,
+            $this->extraHeaders?->without('Content-Type')
         );
     }
 

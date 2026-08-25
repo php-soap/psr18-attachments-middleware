@@ -145,7 +145,7 @@ final class AttachmentTest extends TestCase
     }
 
     #[Test]
-    public function it_drops_the_extras_of_the_representation_it_replaces(): void
+    public function it_keeps_every_extra_a_new_representation_does_not_contradict(): void
     {
         $attachment = new Attachment(
             '<invoice@example.com>',
@@ -153,13 +153,19 @@ final class AttachmentTest extends TestCase
             'invoice.xml',
             'application/xml',
             MemoryStream::create(),
-            Headers::fromPairs([['Content-Type', 'application/xml; charset=UTF-8']])
+            Headers::fromPairs([
+                ['Content-Type', 'application/xml; charset=UTF-8'],
+                ['Content-Location', 'http://example.com/invoice.xml'],
+            ])
         );
 
-        // The bytes are different bytes now, so a header describing the old ones would be a lie.
         $sealed = $attachment->withContent(MemoryStream::create(), 'application/octet-stream');
 
+        // These are different bytes, so the media type the old ones were described by is dropped rather
+        // than left to outrank the new one. It is the only fact this call changes, so it is the only
+        // extra it drops.
         static::assertSame('application/octet-stream', $sealed->headers()->get('Content-Type'));
+        static::assertSame('http://example.com/invoice.xml', $sealed->headers()->get('Content-Location'));
     }
 
     #[Test]
