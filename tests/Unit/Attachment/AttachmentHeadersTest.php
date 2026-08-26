@@ -4,8 +4,10 @@ namespace SoapTest\Psr18AttachmentsMiddleware\Unit\Attachment;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psl\MIME\ContentDisposition;
 use Psl\MIME\Headers;
 use Soap\Psr18AttachmentsMiddleware\Attachment\AttachmentHeaders;
+use Soap\Psr18AttachmentsMiddleware\Exception\InvalidHeaderValueException;
 
 final class AttachmentHeadersTest extends TestCase
 {
@@ -50,6 +52,56 @@ final class AttachmentHeadersTest extends TestCase
                 ['Content-Location', 'http://example.com/invoice.pdf'],
             ],
             $composed->pairs()
+        );
+    }
+
+    #[Test]
+    public function it_escapes_a_name_or_filename_that_would_close_the_quoting(): void
+    {
+        $composed = AttachmentHeaders::compose(
+            '<invoice@example.com>',
+            'in"voice',
+            're;port.pdf',
+            'application/pdf',
+            null
+        );
+
+        // The value has to survive the trip, and a header a peer cannot parse loses the whole part.
+        $disposition = ContentDisposition::parse($composed->get('Content-Disposition'));
+        static::assertSame('in"voice', $disposition->parameters->get('name'));
+        static::assertSame('re;port.pdf', $disposition->parameters->get('filename'));
+    }
+
+    #[Test]
+    public function it_refuses_a_filename_that_would_forge_a_header(): void
+    {
+        // A line break here does not produce a broken header, it produces extra ones: everything after it
+        // reads as a header of its own, and a Content-Transfer-Encoding landing there is honoured ahead of
+        // the real one.
+        $this->expectException(InvalidHeaderValueException::class);
+        $this->expectExceptionMessage('"filename" carries a control character');
+
+        AttachmentHeaders::compose(
+            '<invoice@example.com>',
+            'invoice',
+            "evil\r\nContent-Transfer-Encoding: base64",
+            'application/pdf',
+            null
+        );
+    }
+
+    #[Test]
+    public function it_refuses_a_name_that_would_forge_a_header(): void
+    {
+        $this->expectException(InvalidHeaderValueException::class);
+        $this->expectExceptionMessage('"name" carries a control character');
+
+        AttachmentHeaders::compose(
+            '<invoice@example.com>',
+            "evil\r\nX-Injected: yes",
+            'invoice.pdf',
+            'application/pdf',
+            null
         );
     }
 
