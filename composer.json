@@ -20,7 +20,7 @@
         }
     ],
     "require": {
-        "php": "~8.4.0 || ~8.5.0",
+        "php": "~8.4.0 || ~8.5.0 || ~8.6.0",
         "phpro/resource-stream": "^1.0",
         "php-soap/psr18-transport": "^2.0",
         "php-standard-library/foundation": "^6.1",
