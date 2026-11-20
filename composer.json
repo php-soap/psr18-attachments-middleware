@@ -20,7 +20,7 @@
         }
     ],
     "require": {
-        "php": "~8.4.0 || ~8.5.0",
+        "php": "~8.4.0 || ~8.5.0 || ~8.6.0",
         "phpro/resource-stream": "^1.0",
         "php-soap/psr18-transport": "^2.0",
         "php-standard-library/foundation": "^6.1",
@@ -32,12 +32,12 @@
     },
     "require-dev": {
         "nyholm/psr7": "^1.8",
-        "php-soap/encoding": "~0.34",
-        "vimeo/psalm": "~6.13.0",
-        "php-standard-library/psalm-plugin": "^2.4",
-        "phpunit/phpunit": "~12.4",
+        "php-soap/encoding": "^0.37",
+        "vimeo/psalm": "^7.12",
+        "php-standard-library/psalm-plugin": "^2.5",
+        "phpunit/phpunit": "^12.4",
         "php-http/mock-client": "^1.6",
-        "php-cs-fixer/shim": "~3.88.0",
+        "php-cs-fixer/shim": "^3.88",
         "veewee/reflecta": "^1.0.0"
     },
     "config": {
